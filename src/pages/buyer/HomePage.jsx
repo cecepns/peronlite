@@ -46,13 +46,16 @@ export default function HomePage() {
   const [loadingMore, setLoadingMore] = useState(false);
   const [pageIndex, setPageIndex] = useState(0);
   const [hasMore, setHasMore] = useState(true);
+  const [fetchError, setFetchError] = useState(null);
   const fetchGen = useRef(0);
   const loadMoreRef = useRef(null);
+  const loadMoreFnRef = useRef(() => {});
 
   const loadInitial = useCallback(async () => {
     fetchGen.current += 1;
     const gen = fetchGen.current;
     setLoading(true);
+    setFetchError(null);
     setPageIndex(0);
     setHasMore(true);
     try {
@@ -70,6 +73,12 @@ export default function HomePage() {
       setHasMore(rows.length >= PAGE_SIZE);
       setBanners(bRes.data || []);
       setCategories(cRes.data || []);
+    } catch (err) {
+      if (gen !== fetchGen.current) return;
+      setFetchError(err?.response?.data?.message || err?.message || "Gagal memuat data");
+      setProducts([]);
+      setAdProducts([]);
+      setHasMore(false);
     } finally {
       if (gen === fetchGen.current) setLoading(false);
     }
@@ -80,7 +89,7 @@ export default function HomePage() {
   }, [loadInitial]);
 
   const loadMore = useCallback(async () => {
-    if (loading || loadingMore || !hasMore) return;
+    if (loading || loadingMore || !hasMore || fetchError) return;
     const genAtStart = fetchGen.current;
     setLoadingMore(true);
     try {
@@ -98,23 +107,28 @@ export default function HomePage() {
       setProducts((prev) => [...prev, ...rows]);
       setPageIndex(nextPageIndex);
       setHasMore(rows.length >= PAGE_SIZE);
+    } catch {
+      if (genAtStart !== fetchGen.current) return;
+      setHasMore(false);
     } finally {
       if (genAtStart === fetchGen.current) setLoadingMore(false);
     }
-  }, [loading, loadingMore, hasMore, pageIndex, keyword, category, regencyCode]);
+  }, [loading, loadingMore, hasMore, fetchError, pageIndex, keyword, category, regencyCode]);
+
+  loadMoreFnRef.current = loadMore;
 
   useEffect(() => {
     const node = loadMoreRef.current;
     if (!node) return undefined;
     const observer = new IntersectionObserver(
       (entries) => {
-        if (entries[0]?.isIntersecting) loadMore();
+        if (entries[0]?.isIntersecting) loadMoreFnRef.current();
       },
       { rootMargin: "120px" }
     );
     observer.observe(node);
     return () => observer.disconnect();
-  }, [loadMore]);
+  }, []);
 
   return (
     <div className="-mx-3 min-h-full min-w-0 bg-white px-3 pb-6 sm:-mx-4 sm:px-4">
@@ -214,7 +228,20 @@ export default function HomePage() {
             ))}
       </div>
 
-      {!loading && !products.length ? (
+      {!loading && fetchError ? (
+        <div className="rounded-xl border border-red-100 bg-red-50 px-4 py-6 text-center">
+          <p className="text-sm font-semibold text-red-800">{fetchError}</p>
+          <button
+            type="button"
+            onClick={() => loadInitial()}
+            className="mt-3 rounded-lg bg-blue-600 px-4 py-2 text-sm font-bold text-white hover:bg-blue-700"
+          >
+            Coba lagi
+          </button>
+        </div>
+      ) : null}
+
+      {!loading && !fetchError && !products.length ? (
         <p className="py-4 text-center text-sm text-slate-500">Belum ada komoditas ditemukan.</p>
       ) : null}
 
@@ -233,8 +260,14 @@ export default function HomePage() {
         </>
       ) : null}
 
-      <div ref={loadMoreRef} className="flex justify-center py-4">
-        {loadingMore ? <span className="h-6 w-6 animate-spin rounded-full border-2 border-blue-600 border-t-transparent" /> : null}
+      <div
+        ref={loadMoreRef}
+        className={`flex justify-center py-4 ${!hasMore || fetchError ? "pointer-events-none invisible h-0 py-0" : ""}`}
+        aria-hidden={!hasMore || !!fetchError}
+      >
+        {loadingMore && hasMore && !fetchError ? (
+          <span className="h-6 w-6 animate-spin rounded-full border-2 border-blue-600 border-t-transparent" />
+        ) : null}
       </div>
       </div>
 
