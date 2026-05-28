@@ -1,0 +1,16 @@
+export const DEFAULT_TERMS_SECTIONS = [
+  {
+    title: "1. Ketentuan Umum",
+    body:
+      "Dengan mendaftar dan menggunakan aplikasi Peronline, Anda menyetujui syarat dan ketentuan ini. Peronline adalah platform penghubung antara pencari jasa (buyer) dan penyedia jasa (seller)."
+  },
+  {
+    title: "2. Akun Pengguna",
+    body:
+      "Anda wajib memberikan data yang benar saat registrasi. Anda bertanggung jawab menjaga kerahasiaan akun dan seluruh aktivitas di dalamnya."
+  },
+  {
+    title: "3. Hubungi Kami",
+    body: "Untuk pertanyaan terkait syarat ini, hubungi admin melalui kontak resmi di aplikasi."
+  }
+];
