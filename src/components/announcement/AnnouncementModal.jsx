@@ -56,7 +56,7 @@ export default function AnnouncementModal() {
   if (!item) return null;
 
   return (
-    <Modal open={open} onClose={onClose} title={item.title}>
+    <Modal open={open} onClose={onClose} title={item.title} mobileCenter>
       <div className="space-y-3">
         {item.image ? (
           <img src={resolveImageUrl(item.image)} alt="" className="max-h-48 w-full rounded-xl object-cover" />

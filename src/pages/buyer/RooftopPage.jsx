@@ -1,21 +1,24 @@
 import { useCallback, useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { ChevronDown, ChevronLeft, Filter, MapPin, Search, Sprout, X } from "lucide-react";
 import api from "@/utils/api";
 import { API_ENDPOINTS } from "@/utils/endpoints";
 import { useDebounce } from "@/hooks/useDebounce";
 import CategoryChips from "@/components/home/CategoryChips";
+import StoreCategoryChips from "@/components/home/StoreCategoryChips";
 import RooftopSellerCard from "@/components/rooftop/RooftopSellerCard";
 import RegencySearchModal from "@/components/regency/RegencySearchModal";
 import Modal from "@/components/ui/Modal";
 import BrandLogo from "@/components/brand/BrandLogo";
 
 export default function RooftopPage() {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [items, setItems] = useState([]);
   const [categories, setCategories] = useState([]);
   const [keywordInput, setKeywordInput] = useState("");
   const keyword = useDebounce(keywordInput, 300);
   const [category, setCategory] = useState("");
+  const [storeCategory, setStoreCategory] = useState(() => searchParams.get("store_category") || "");
   const [regencyCode, setRegencyCode] = useState("");
   const [regencyLabel, setRegencyLabel] = useState("");
   const [loading, setLoading] = useState(true);
@@ -32,9 +35,10 @@ export default function RooftopPage() {
         regency_code: regencyCode || "",
         limit: "50",
         offset: "0"
-      }).toString();
+      });
+      if (storeCategory) q.set("store_category", storeCategory);
       const [pRes, cRes] = await Promise.all([
-        api.get(`${API_ENDPOINTS.PRODUCTS.LIST}?${q}`),
+        api.get(`${API_ENDPOINTS.PRODUCTS.LIST}?${q.toString()}`),
         api.get(API_ENDPOINTS.CATEGORIES.LIST)
       ]);
       setItems(Array.isArray(pRes.data) ? pRes.data : []);
@@ -42,16 +46,29 @@ export default function RooftopPage() {
     } finally {
       setLoading(false);
     }
-  }, [keyword, category, regencyCode]);
+  }, [keyword, category, regencyCode, storeCategory]);
+
+  useEffect(() => {
+    setSearchParams(
+      (prev) => {
+        const next = new URLSearchParams(prev);
+        if (storeCategory) next.set("store_category", storeCategory);
+        else next.delete("store_category");
+        return next;
+      },
+      { replace: true }
+    );
+  }, [storeCategory, setSearchParams]);
 
   useEffect(() => {
     load();
   }, [load]);
 
-  const hasActiveFilters = Boolean(category || regencyCode);
+  const hasActiveFilters = Boolean(category || regencyCode || storeCategory);
 
   const clearFilters = () => {
     setCategory("");
+    setStoreCategory("");
     setRegencyCode("");
     setRegencyLabel("");
   };
@@ -152,8 +169,9 @@ export default function RooftopPage() {
         </div>
       </header>
 
-      <div className="mx-auto max-w-2xl px-3 py-3 sm:px-4">
+      <div className="mx-auto max-w-2xl space-y-2 px-3 py-3 sm:px-4">
         <CategoryChips categories={categories} value={category} onChange={setCategory} loading={loading} />
+        <StoreCategoryChips value={storeCategory} onChange={setStoreCategory} loading={loading} />
       </div>
 
       <main className="mx-auto max-w-2xl space-y-3 px-3 pb-10 sm:px-4">
@@ -207,6 +225,17 @@ export default function RooftopPage() {
               {c.name}
             </option>
           ))}
+        </select>
+        <label className="mb-2 block text-sm font-bold text-slate-700">Kategori Toko</label>
+        <select
+          value={storeCategory}
+          onChange={(e) => setStoreCategory(e.target.value)}
+          className="mb-4 w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm"
+        >
+          <option value="">Semua (Supplier / Petani / Transportir)</option>
+          <option value="supplier">Supplier</option>
+          <option value="petani">Petani</option>
+          <option value="transportir">Transportir</option>
         </select>
         <label className="mb-2 block text-sm font-bold text-slate-700">Kabupaten / Kota</label>
         <button

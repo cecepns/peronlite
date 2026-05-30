@@ -7,6 +7,7 @@ import { API_ENDPOINTS } from "@/utils/endpoints";
 import BannerCarousel from "@/components/home/BannerCarousel";
 import { BANNER_HEIGHT_CLASS } from "@/components/home/bannerConstants";
 import CategoryChips from "@/components/home/CategoryChips";
+import StoreCategoryChips from "@/components/home/StoreCategoryChips";
 import ProductCard from "@/components/product/ProductCard";
 import AdProductCarousel from "@/components/home/AdProductCarousel";
 import ProductCardSkeleton from "@/components/product/ProductCardSkeleton";
@@ -17,7 +18,7 @@ import { BRAND_NAME } from "@/constants/brand";
 
 const PAGE_SIZE = 20;
 
-function buildQuery({ keyword, category, regencyCode, offset, productType, isHighlight }) {
+function buildQuery({ keyword, category, regencyCode, storeCategory, offset, productType, isHighlight }) {
   const params = new URLSearchParams({
     search: keyword || "",
     category_id: category || "",
@@ -25,6 +26,7 @@ function buildQuery({ keyword, category, regencyCode, offset, productType, isHig
     limit: String(PAGE_SIZE),
     offset: String(offset)
   });
+  if (storeCategory) params.set("store_category", storeCategory);
   if (productType) params.set("product_type", productType);
   if (isHighlight !== undefined) params.set("is_highlight", isHighlight ? "1" : "0");
   return params.toString();
@@ -38,6 +40,7 @@ export default function HomePage() {
   const [categories, setCategories] = useState([]);
   const [keyword, setKeyword] = useState("");
   const [category, setCategory] = useState("");
+  const [storeCategory, setStoreCategory] = useState("");
   const [regencyCode, setRegencyCode] = useState("");
   const [regencyLabel, setRegencyLabel] = useState("");
   const [filterOpen, setFilterOpen] = useState(false);
@@ -59,11 +62,12 @@ export default function HomePage() {
     setPageIndex(0);
     setHasMore(true);
     try {
-      const base = { keyword, category, regencyCode, offset: 0 };
+      const base = { keyword, category, regencyCode, storeCategory, offset: 0 };
+      const bannerParams = storeCategory ? `?store_category=${encodeURIComponent(storeCategory)}` : "";
       const [pRes, adRes, bRes, cRes] = await Promise.all([
         api.get(`${API_ENDPOINTS.PRODUCTS.LIST}?${buildQuery({ ...base, productType: "regular", isHighlight: false })}`),
         api.get(`${API_ENDPOINTS.PRODUCTS.LIST}?${buildQuery({ ...base, productType: "regular", isHighlight: true })}`),
-        api.get(API_ENDPOINTS.BANNERS),
+        api.get(`${API_ENDPOINTS.BANNERS}${bannerParams}`),
         api.get(API_ENDPOINTS.CATEGORIES.LIST)
       ]);
       if (gen !== fetchGen.current) return;
@@ -82,7 +86,7 @@ export default function HomePage() {
     } finally {
       if (gen === fetchGen.current) setLoading(false);
     }
-  }, [keyword, category, regencyCode]);
+  }, [keyword, category, regencyCode, storeCategory]);
 
   useEffect(() => {
     loadInitial();
@@ -96,7 +100,7 @@ export default function HomePage() {
       const nextPageIndex = pageIndex + 1;
       const offset = nextPageIndex * PAGE_SIZE;
       const pRes = await api.get(
-        `${API_ENDPOINTS.PRODUCTS.LIST}?${buildQuery({ keyword, category, regencyCode, offset, productType: "regular", isHighlight: false })}`
+        `${API_ENDPOINTS.PRODUCTS.LIST}?${buildQuery({ keyword, category, regencyCode, storeCategory, offset, productType: "regular", isHighlight: false })}`
       );
       if (genAtStart !== fetchGen.current) return;
       const rows = Array.isArray(pRes.data) ? pRes.data : [];
@@ -113,7 +117,7 @@ export default function HomePage() {
     } finally {
       if (genAtStart === fetchGen.current) setLoadingMore(false);
     }
-  }, [loading, loadingMore, hasMore, fetchError, pageIndex, keyword, category, regencyCode]);
+  }, [loading, loadingMore, hasMore, fetchError, pageIndex, keyword, category, regencyCode, storeCategory]);
 
   loadMoreFnRef.current = loadMore;
 
@@ -181,6 +185,7 @@ export default function HomePage() {
         <div data-intro-home-categories>
           <CategoryChips categories={categories} value={category} onChange={setCategory} loading={loading} />
         </div>
+        <StoreCategoryChips value={storeCategory} onChange={setStoreCategory} loading={loading} />
       </div>
 
       <div className="min-w-0 space-y-3">
@@ -193,7 +198,7 @@ export default function HomePage() {
       </section>
 
       <Link
-        to="/roof-top"
+        to={storeCategory ? `/roof-top?store_category=${encodeURIComponent(storeCategory)}` : "/roof-top"}
         data-intro-home-rooftop
         className="group relative flex items-center gap-4 overflow-hidden rounded-2xl border-2 border-amber-300/80 bg-gradient-to-r from-[#FFD700] via-[#f5c400] to-[#ffe566] px-4 py-4 shadow-md transition hover:shadow-lg"
       >
@@ -287,6 +292,17 @@ export default function HomePage() {
             </option>
           ))}
         </select>
+        <label className="mb-2 block text-sm font-bold text-slate-700">Kategori Toko</label>
+        <select
+          value={storeCategory}
+          onChange={(e) => setStoreCategory(e.target.value)}
+          className="mb-4 w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm"
+        >
+          <option value="">Semua (Supplier / Petani / Transportir)</option>
+          <option value="supplier">Supplier</option>
+          <option value="petani">Petani</option>
+          <option value="transportir">Transportir</option>
+        </select>
         <label className="mb-2 block text-sm font-bold text-slate-700">Kabupaten / Kota</label>
         <button
           type="button"
@@ -304,6 +320,7 @@ export default function HomePage() {
           type="button"
           onClick={() => {
             setCategory("");
+            setStoreCategory("");
             setRegencyCode("");
             setRegencyLabel("");
           }}
