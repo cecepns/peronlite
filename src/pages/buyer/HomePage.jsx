@@ -182,13 +182,12 @@ export default function HomePage() {
             <Filter size={20} />
           </button>
         </div>
-        <div data-intro-home-categories>
-          <CategoryChips categories={categories} value={category} onChange={setCategory} loading={loading} />
-        </div>
-        <StoreCategoryChips value={storeCategory} onChange={setStoreCategory} loading={loading} />
       </div>
 
       <div className="min-w-0 space-y-3">
+      <div data-intro-home-categories>
+        <CategoryChips categories={categories} value={category} onChange={setCategory} loading={loading} />
+      </div>
       <section data-intro-home-banner className="w-full min-w-0 max-w-full shrink-0" aria-label="Banner promosi">
         {loading ? (
           <div className={`w-full max-w-full animate-pulse rounded-2xl border border-slate-200 bg-white ${BANNER_HEIGHT_CLASS}`} />
@@ -218,6 +217,8 @@ export default function HomePage() {
           <AdProductCarousel products={adProducts} />
         </div>
       ) : null}
+
+      <StoreCategoryChips value={storeCategory} onChange={setStoreCategory} loading={loading} />
 
       <section className="min-w-0 pt-1" aria-labelledby="home-komoditas-heading" data-intro-home-komoditas>
         <h2 id="home-komoditas-heading" className="text-lg font-extrabold tracking-tight text-slate-900 sm:text-xl">
