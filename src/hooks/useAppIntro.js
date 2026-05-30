@@ -51,7 +51,6 @@ const SELLER_DASH_STEPS = [
 const SELLER_MOBILE_STEPS = [
   { element: "[data-intro-mobile-seller-home]", intro: "(Mobile) Beranda buyer." },
   { element: "[data-intro-mobile-seller-iklan]", intro: "(Mobile) Dashboard iklan & ringkasan toko." },
-  { element: "[data-intro-mobile-seller-toko]", intro: "(Mobile) Profil toko." },
   { element: "[data-intro-mobile-seller-banner]", intro: "(Mobile) Kelola iklan banner." },
   { element: "[data-intro-mobile-seller-akun]", intro: "(Mobile) Halaman akun." }
 ];
@@ -66,7 +65,7 @@ const SELLER_PAGE_STEPS = {
   "/seller/toko": [
     {
       element: "[data-intro-seller-page-toko]",
-      intro: "Lengkapi profil toko agar pembeli percaya — logo, alamat, dan kontak WhatsApp."
+      intro: "Lengkapi profil toko/usaha — kategori (supplier, petani, transportir), logo, alamat, dan kontak WhatsApp."
     }
   ],
   "/seller/banner": [

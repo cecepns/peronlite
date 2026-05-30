@@ -5,11 +5,13 @@ import { API_ENDPOINTS } from "@/utils/endpoints";
 import { useAuth } from "@/context/AuthContext";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
+import { STORE_CATEGORIES } from "@/constants/storeCategories";
 
 export default function ManageStorePage() {
   const { user } = useAuth();
   const [store, setStore] = useState({
     name: "",
+    store_category: "",
     description: "",
     address: "",
     address_detail: "",
@@ -98,8 +100,22 @@ export default function ManageStorePage() {
       data-intro-seller-page-toko
       className="mx-auto max-w-2xl space-y-3 rounded-xl border border-slate-200 bg-white p-4"
     >
-      <h1 className="text-xl font-bold text-slate-900">Kelola Toko</h1>
-      <Input label="Nama toko" value={store.name} onChange={(e) => updateField("name", e.target.value)} required />
+      <h1 className="text-xl font-bold text-slate-900">Kelola toko / usaha</h1>
+      <Input label="Nama toko / usaha" value={store.name} onChange={(e) => updateField("name", e.target.value)} required />
+      <label className="block text-sm font-semibold text-slate-700">Kategori usaha</label>
+      <select
+        value={store.store_category || ""}
+        onChange={(e) => updateField("store_category", e.target.value)}
+        className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+        required
+      >
+        <option value="">Pilih kategori</option>
+        {STORE_CATEGORIES.map((c) => (
+          <option key={c.value} value={c.value}>
+            {c.label}
+          </option>
+        ))}
+      </select>
       <label className="block text-sm font-semibold text-slate-700">Deskripsi</label>
       <textarea
         value={store.description}

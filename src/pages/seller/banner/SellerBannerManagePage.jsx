@@ -283,7 +283,7 @@ export default function SellerBannerManagePage() {
               <textarea
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                placeholder="Contoh: Diskon 20% jasa renovasi rumah — hubungi kami hari ini!"
+                placeholder="Contoh: Jagung kering GKP stok baru — hubungi kami hari ini!"
                 disabled={formLocked}
                 rows={4}
                 maxLength={500}

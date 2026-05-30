@@ -25,8 +25,8 @@ import { BRAND_NAME } from "@/constants/brand";
 
 function GuestProfile({ adminWaUrl }) {
   const features = [
-    { icon: Search, text: "Cari jasa lokal terdekat" },
-    { icon: Building2, text: "Buka toko & tawarkan jasa" },
+    { icon: Search, text: "Cari komoditas pertanian terdekat" },
+    { icon: Building2, text: "Buka toko & jual komoditas hasil bumi" },
     { icon: Sparkles, text: "Upgrade premium untuk visibilitas" }
   ];
 
@@ -214,7 +214,7 @@ export default function ProfilePage() {
         {user.role === "buyer" ? (
           <Button variant="seller" className="w-full" loading={switchingRole} onClick={onBecomeSeller}>
             <Building2 size={18} />
-            Jadi Penyedia Jasa (Seller)
+            Jadi Penjual Komoditas (Seller)
           </Button>
         ) : null}
         {user.role === "seller" ? (

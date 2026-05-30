@@ -30,7 +30,7 @@ export default function SellerBannerHubPage() {
             <h1 className="text-xl font-bold text-blue-900">Iklan Banner</h1>
           </div>
           <p className="mt-2 text-sm leading-relaxed text-slate-600">
-            Promosikan toko atau jasa kamu di halaman utama Peronline dengan iklan banner.
+            Promosikan toko atau komoditas kamu di halaman utama Peronline dengan iklan banner.
           </p>
         </div>
 

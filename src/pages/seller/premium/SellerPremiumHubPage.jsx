@@ -11,7 +11,7 @@ export default function SellerPremiumHubPage() {
             <h1 className="text-xl font-bold text-violet-900">Paket Premium</h1>
           </div>
           <p className="mt-2 text-sm leading-relaxed text-slate-600">
-            Tingkatkan visibilitas jasa dan toko kamu di Peronline dengan akun premium.
+            Tingkatkan visibilitas komoditas dan toko kamu di Peronline dengan akun premium.
           </p>
         </div>
 

@@ -38,7 +38,7 @@ export default function SidebarNav() {
   const sellerLinks = [
     { to: "/", label: "Home", icon: Home, end: true, introKey: "seller-nav-home" },
     { to: "/seller/iklan", label: "Iklan Saya", icon: LayoutGrid, introKey: "seller-nav-iklan" },
-    { to: "/seller/toko", label: "Toko", icon: Store, introKey: "seller-nav-toko" },
+    { to: "/seller/toko", label: "Toko / Usaha", icon: Store, introKey: "seller-nav-toko" },
     { to: "/seller/produk", label: "Produk", icon: FolderTree, introKey: "seller-nav-produk" },
     { to: "/seller/banner", label: "Banner", icon: Image, introKey: "seller-nav-banner" },
     { to: "/seller/feed", label: "Iklan Feed", icon: Megaphone, introKey: "seller-nav-feed" },

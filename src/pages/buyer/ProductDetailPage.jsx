@@ -116,7 +116,7 @@ export default function ProductDetailPage() {
     const url = `${window.location.origin}/jasa/${detail.slug || detail.id}`;
     try {
       if (navigator.share) {
-        await navigator.share({ title: detail.name, text: `Lihat jasa ini di ${BRAND_NAME}: ${detail.name}`, url });
+        await navigator.share({ title: detail.name, text: `Lihat komoditas ini di ${BRAND_NAME}: ${detail.name}`, url });
       } else {
         await navigator.clipboard.writeText(url);
         toast.success("Link disalin");
@@ -137,7 +137,7 @@ export default function ProductDetailPage() {
   const images = detail.images || [];
   const rooftopItems = parseRooftopItems(detail);
   const isRooftop = isRooftopProduct(detail);
-  const waUrl = buildWhatsAppUrl(detail.seller_phone, `Halo, saya tertarik dengan jasa "${detail.name}" di ${BRAND_NAME}.`);
+  const waUrl = buildWhatsAppUrl(detail.seller_phone, `Halo, saya tertarik dengan komoditas "${detail.name}" di ${BRAND_NAME}.`);
 
   return (
     <div className="pb-24 lg:pb-6">

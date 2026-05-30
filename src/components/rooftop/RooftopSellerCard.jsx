@@ -44,7 +44,7 @@ export default function RooftopSellerCard({ product }) {
           </span>
         </div>
         <div className="min-w-0 flex-1">
-          <h3 className="font-serif text-lg font-extrabold leading-tight text-slate-900 sm:text-xl">{storeLabel}</h3>
+          <h3 className="text-base font-bold leading-tight text-slate-900 sm:text-lg">{storeLabel}</h3>
           {product.description ? (
             <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-slate-600">{product.description}</p>
           ) : null}

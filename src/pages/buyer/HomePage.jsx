@@ -8,7 +8,7 @@ import BannerCarousel from "@/components/home/BannerCarousel";
 import { BANNER_HEIGHT_CLASS } from "@/components/home/bannerConstants";
 import CategoryChips from "@/components/home/CategoryChips";
 import ProductCard from "@/components/product/ProductCard";
-import AdProductCard from "@/components/product/AdProductCard";
+import AdProductCarousel from "@/components/home/AdProductCarousel";
 import ProductCardSkeleton from "@/components/product/ProductCardSkeleton";
 import RegencySearchModal from "@/components/regency/RegencySearchModal";
 import Modal from "@/components/ui/Modal";
@@ -166,7 +166,7 @@ export default function HomePage() {
           <input
             value={keyword}
             onChange={(e) => setKeyword(e.target.value)}
-            placeholder="Cari jasa..."
+            placeholder="Cari komoditas pertanian..."
             className="flex-1 rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
           />
           <button
@@ -208,6 +208,12 @@ export default function HomePage() {
         <ChevronRight size={22} className="shrink-0 text-slate-900 transition group-hover:translate-x-0.5" />
       </Link>
 
+      {!loading && adProducts.length > 0 ? (
+        <div data-intro-home-ads>
+          <AdProductCarousel products={adProducts} />
+        </div>
+      ) : null}
+
       <section className="min-w-0 pt-1" aria-labelledby="home-komoditas-heading" data-intro-home-komoditas>
         <h2 id="home-komoditas-heading" className="text-lg font-extrabold tracking-tight text-slate-900 sm:text-xl">
           Komoditas Produk
@@ -243,21 +249,6 @@ export default function HomePage() {
 
       {!loading && !fetchError && !products.length ? (
         <p className="py-4 text-center text-sm text-slate-500">Belum ada komoditas ditemukan.</p>
-      ) : null}
-
-      {adProducts.length > 0 ? (
-        <>
-          <section className="min-w-0 pt-2" aria-labelledby="home-ads-heading">
-            <h2 id="home-ads-heading" className="text-lg font-extrabold tracking-tight text-slate-900 sm:text-xl">
-              Iklan Produk
-            </h2>
-          </section>
-          <div className="grid w-full min-w-0 grid-cols-1 gap-3 sm:grid-cols-2">
-            {adProducts.map((p) => (
-              <AdProductCard key={`ad-${p.id}`} product={p} />
-            ))}
-          </div>
-        </>
       ) : null}
 
       <div

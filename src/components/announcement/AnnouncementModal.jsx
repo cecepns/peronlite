@@ -6,7 +6,19 @@ import { resolveImageUrl } from "@/utils/image";
 import { useAuth } from "@/context/AuthContext";
 import Modal from "@/components/ui/Modal";
 
-const dismissedKey = (id) => `peronline_announcement_${id}`;
+const dismissedAtKey = (id) => `peronline_announcement_at_${id}`;
+
+/** interval 0 = tampil lagi setiap reload / login */
+function shouldShowAnnouncement(row) {
+  const minutes = Math.max(0, Number(row.repeat_interval_minutes) || 0);
+  if (minutes <= 0) return true;
+
+  const raw = localStorage.getItem(dismissedAtKey(row.id));
+  if (!raw) return true;
+  const dismissedAt = Number(raw);
+  if (Number.isNaN(dismissedAt)) return true;
+  return Date.now() - dismissedAt >= minutes * 60 * 1000;
+}
 
 export default function AnnouncementModal() {
   const { user } = useAuth();
@@ -19,17 +31,25 @@ export default function AnnouncementModal() {
       .get(`${API_ENDPOINTS.ANNOUNCEMENTS.ACTIVE}?audience=${audience}`)
       .then((res) => {
         const rows = Array.isArray(res.data) ? res.data : [];
-        const next = rows.find((row) => !localStorage.getItem(dismissedKey(row.id)));
+        const next = rows.find((row) => shouldShowAnnouncement(row));
         if (next) {
           setItem(next);
           setOpen(true);
+        } else {
+          setItem(null);
+          setOpen(false);
         }
       })
       .catch(() => {});
   }, [user]);
 
   const onClose = () => {
-    if (item) localStorage.setItem(dismissedKey(item.id), "1");
+    if (item) {
+      const minutes = Math.max(0, Number(item.repeat_interval_minutes) || 0);
+      if (minutes > 0) {
+        localStorage.setItem(dismissedAtKey(item.id), String(Date.now()));
+      }
+    }
     setOpen(false);
   };
 

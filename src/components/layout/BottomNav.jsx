@@ -1,5 +1,5 @@
 import { NavLink } from "react-router-dom";
-import { Home, UserCircle, LayoutGrid, Store, Image, Settings } from "lucide-react";
+import { Home, UserCircle, LayoutGrid, Image, Settings } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 
 const linkClass = ({ isActive }) =>
@@ -37,10 +37,6 @@ export default function BottomNav() {
           <NavLink to="/seller/iklan" className={linkClass} data-intro-mobile-seller-iklan>
             <LayoutGrid size={20} />
             Iklan
-          </NavLink>
-          <NavLink to="/seller/toko" className={linkClass} data-intro-mobile-seller-toko>
-            <Store size={20} />
-            Toko
           </NavLink>
           <NavLink to="/seller/banner" className={linkClass} data-intro-mobile-seller-banner>
             <Image size={20} />

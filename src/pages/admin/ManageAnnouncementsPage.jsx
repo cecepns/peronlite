@@ -16,6 +16,7 @@ const emptyForm = () => ({
   audience: "all",
   is_active: "1",
   link_url: "",
+  repeat_interval_minutes: "0",
   image: null
 });
 
@@ -62,6 +63,7 @@ export default function ManageAnnouncementsPage() {
       audience: row.audience || "all",
       is_active: row.is_active ? "1" : "0",
       link_url: row.link_url || "",
+      repeat_interval_minutes: String(row.repeat_interval_minutes ?? 0),
       image: null
     });
     setOpen(true);
@@ -82,6 +84,7 @@ export default function ManageAnnouncementsPage() {
     fd.append("body", form.body.trim());
     fd.append("audience", form.audience);
     fd.append("is_active", form.is_active);
+    fd.append("repeat_interval_minutes", form.repeat_interval_minutes || "0");
     if (form.link_url) fd.append("link_url", form.link_url);
     if (form.image) fd.append("image", form.image);
     setSaving(true);
@@ -126,7 +129,12 @@ export default function ManageAnnouncementsPage() {
               {row.image ? <img src={resolveImageUrl(row.image)} alt="" className="h-12 w-12 rounded-lg object-cover" /> : null}
               <div className="min-w-0 flex-1">
                 <p className="font-bold text-slate-900">{row.title}</p>
-                <p className="truncate text-xs text-slate-500">{row.body || "—"} · {row.audience}</p>
+                <p className="truncate text-xs text-slate-500">
+                  {row.body || "—"} · {row.audience}
+                  {Number(row.repeat_interval_minutes) > 0
+                    ? ` · ulang ${row.repeat_interval_minutes} mnt`
+                    : " · setiap reload/login"}
+                </p>
               </div>
               <Button variant="outline" onClick={() => openEdit(row)}>
                 Edit
@@ -178,6 +186,16 @@ export default function ManageAnnouncementsPage() {
             <option value="1">Aktif</option>
             <option value="0">Nonaktif</option>
           </select>
+          <Input
+            label="Tampilkan lagi setiap (menit)"
+            type="number"
+            min={0}
+            value={form.repeat_interval_minutes}
+            onChange={(e) => setForm((f) => ({ ...f, repeat_interval_minutes: e.target.value }))}
+          />
+          <p className="-mt-1 text-xs text-slate-500">
+            0 = muncul lagi setiap reload halaman atau setelah login. Isi angka (mis. 30) untuk interval menit setelah ditutup.
+          </p>
           <Input label="Link URL (opsional)" value={form.link_url} onChange={(e) => setForm((f) => ({ ...f, link_url: e.target.value }))} />
           <Button type="submit" loading={saving} className="w-full">
             Simpan

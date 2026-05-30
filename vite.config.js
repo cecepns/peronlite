@@ -14,7 +14,7 @@ export default defineConfig({
       manifest: {
         name: "Peronline",
         short_name: "Peronline",
-        description: "Marketplace jasa online Indonesia",
+        description: "Marketplace komoditas hasil pertanian Indonesia",
         theme_color: "#1d4ed8",
         background_color: "#f8fafc",
         display: "standalone",

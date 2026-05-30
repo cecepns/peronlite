@@ -1,12 +1,14 @@
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
-import { Plus, Trash2 } from "lucide-react";
+import { ChevronDown, MapPin, Plus, Trash2 } from "lucide-react";
 import toast from "react-hot-toast";
 import api from "@/utils/api";
 import { API_ENDPOINTS } from "@/utils/endpoints";
+import { useAuth } from "@/context/AuthContext";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import ProductImageUpload from "@/components/product/ProductImageUpload";
+import RegencySearchModal from "@/components/regency/RegencySearchModal";
 import { parseRooftopItems } from "@/utils/product";
 
 const emptyItem = () => ({ name: "", price: "" });
@@ -20,6 +22,7 @@ function makeFileEntry(file) {
 }
 
 export default function ProductFormPage() {
+  const { user } = useAuth();
   const { id } = useParams();
   const [searchParams] = useSearchParams();
   const isRooftop = searchParams.get("tipe") === "rooftop";
@@ -27,6 +30,9 @@ export default function ProductFormPage() {
   const navigate = useNavigate();
   const [categories, setCategories] = useState([]);
   const [form, setForm] = useState({ name: "", price: "", category_id: "", description: "" });
+  const [serviceRegencyCode, setServiceRegencyCode] = useState("");
+  const [serviceRegencyLabel, setServiceRegencyLabel] = useState("");
+  const [locationOpen, setLocationOpen] = useState(false);
   const [rooftopItems, setRooftopItems] = useState([emptyItem(), emptyItem(), emptyItem()]);
   const [existingImages, setExistingImages] = useState([]);
   const [newFiles, setNewFiles] = useState([]);
@@ -34,6 +40,16 @@ export default function ProductFormPage() {
 
   useEffect(() => {
     api.get(API_ENDPOINTS.CATEGORIES.LIST).then((res) => setCategories(res.data || []));
+    api
+      .get(API_ENDPOINTS.STORE.DETAIL(user.id))
+      .then((res) => {
+        if (!res.data || isEdit) return;
+        if (res.data.regency_code) {
+          setServiceRegencyCode(res.data.regency_code);
+          setServiceRegencyLabel(res.data.regency_name || "");
+        }
+      })
+      .catch(() => null);
     if (!isEdit) return;
     api.get(API_ENDPOINTS.PRODUCTS.DETAIL(id)).then((res) => {
       const d = res.data;
@@ -43,12 +59,16 @@ export default function ProductFormPage() {
         category_id: String(d.category_id || ""),
         description: d.description || ""
       });
+      if (d.service_regency_code) {
+        setServiceRegencyCode(d.service_regency_code);
+        setServiceRegencyLabel(d.service_regency_name || d.product_location_name || "");
+      }
       const items = parseRooftopItems(d);
       if (items.length) setRooftopItems(items.map((i) => ({ name: i.name, price: String(i.price) })));
       const imgs = Array.isArray(d.images) ? d.images : d.thumbnail ? [{ id: 0, image: d.thumbnail }] : [];
       setExistingImages(imgs.filter((img) => img?.image));
     });
-  }, [id, isEdit]);
+  }, [id, isEdit, user.id]);
 
   const addFiles = useCallback(
     (files) => {
@@ -86,6 +106,10 @@ export default function ProductFormPage() {
     fd.append("category_id", form.category_id);
     fd.append("description", form.description);
     fd.append("product_type", isRooftop ? "rooftop" : "regular");
+    if (serviceRegencyCode) {
+      fd.append("service_regency_code", serviceRegencyCode);
+      fd.append("service_regency_name", serviceRegencyLabel);
+    }
     if (isRooftop) {
       const cleaned = rooftopItems
         .map((i) => ({ name: i.name.trim(), price: Number(i.price) }))
@@ -172,6 +196,22 @@ export default function ProductFormPage() {
         </div>
       )}
 
+      <div className="space-y-1.5">
+        <span className="text-sm font-bold text-slate-700">Asal daerah komoditas</span>
+        <button
+          type="button"
+          onClick={() => setLocationOpen(true)}
+          className="flex w-full items-center justify-between rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5 text-left text-sm font-semibold text-slate-800"
+        >
+          <span className="inline-flex min-w-0 items-center gap-2 truncate">
+            <MapPin size={18} className="shrink-0 text-blue-600" />
+            {serviceRegencyLabel || "Pilih kabupaten / kota"}
+          </span>
+          <ChevronDown size={18} className="shrink-0 text-slate-500" />
+        </button>
+        <p className="text-xs text-slate-500">Default mengikuti lokasi toko. Bisa diubah per produk.</p>
+      </div>
+
       <label className="block space-y-1.5">
         <span className="text-sm font-bold text-slate-700">Komoditas</span>
         <select
@@ -209,6 +249,17 @@ export default function ProductFormPage() {
         onAddFiles={addFiles}
         onRemoveNew={removeNewFile}
         disabled={saving}
+      />
+
+      <RegencySearchModal
+        open={locationOpen}
+        onClose={() => setLocationOpen(false)}
+        selectedCode={serviceRegencyCode || undefined}
+        title="Asal daerah komoditas"
+        onSelect={({ code, name, province_name }) => {
+          setServiceRegencyCode(code || "");
+          setServiceRegencyLabel(!code ? "" : province_name ? `${name} · ${province_name}` : name);
+        }}
       />
 
       <div className="flex gap-2 border-t border-slate-100 pt-2">

@@ -55,7 +55,7 @@ export default function RegisterPage() {
               className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm"
             >
               <option value="buyer">Buyer</option>
-              <option value="seller">Seller (Penyedia Jasa)</option>
+              <option value="seller">Seller (Penjual Komoditas)</option>
             </select>
           </div>
           <label className="mt-4 flex cursor-pointer items-start gap-2.5">
