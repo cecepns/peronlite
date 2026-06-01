@@ -1,4 +1,4 @@
-import { Navigate, Route, Routes, useParams } from "react-router-dom";
+import { Navigate, Route, Routes } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import AppShell from "@/components/layout/AppShell";
 import HomePage from "@/pages/buyer/HomePage";
@@ -27,11 +27,6 @@ import AdminPremiumRoutes from "@/pages/admin/premium/AdminPremiumRoutes";
 import AdminFeedRoutes from "@/pages/admin/feed/AdminFeedRoutes";
 import ManageAnnouncementsPage from "@/pages/admin/ManageAnnouncementsPage";
 
-function RedirectJasaToProduk() {
-  const { id } = useParams();
-  return <Navigate to={`/produk/${id}`} replace />;
-}
-
 function ProtectedRoute({ children, roles }) {
   const { user } = useAuth();
   if (!user) return <Navigate to="/login" replace />;
@@ -48,7 +43,6 @@ export default function AppRoutes() {
       <Route element={<AppShell />}>
         <Route index element={<HomePage />} />
         <Route path="produk/:id" element={<ProductDetailPage />} />
-        <Route path="jasa/:id" element={<RedirectJasaToProduk />} />
         <Route path="toko/:userId" element={<StoreFrontPage />} />
         <Route path="akun" element={<ProfilePage />} />
         <Route path="akun/edit" element={<EditProfilePage />} />

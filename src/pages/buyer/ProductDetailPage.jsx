@@ -10,7 +10,7 @@ import { buildWhatsAppUrl } from "@/utils/phone";
 import Button from "@/components/ui/Button";
 import WhatsAppIcon from "@/components/icons/WhatsAppIcon";
 import { BRAND_NAME } from "@/constants/brand";
-import { isRooftopProduct, parseRooftopItems } from "@/utils/product";
+import { getProductPath, isRooftopProduct, parseRooftopItems } from "@/utils/product";
 
 function ProductGallery({ images, name, activeIndex, onSelect }) {
   if (!images.length) {
@@ -113,7 +113,7 @@ export default function ProductDetailPage() {
 
   const onShare = async () => {
     if (!detail) return;
-    const url = `${window.location.origin}/produk/${detail.slug || detail.id}`;
+    const url = `${window.location.origin}${getProductPath(detail.slug || detail.id)}`;
     try {
       if (navigator.share) {
         await navigator.share({ title: detail.name, text: `Lihat komoditas ini di ${BRAND_NAME}: ${detail.name}`, url });
