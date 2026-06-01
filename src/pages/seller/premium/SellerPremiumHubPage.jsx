@@ -1,5 +1,6 @@
 import { CircleDollarSign, Info, Sparkles } from "lucide-react";
 import { BannerPageStack, HubCard } from "@/components/banner/BannerUi";
+import { BRAND_NAME } from "@/constants/brand";
 
 export default function SellerPremiumHubPage() {
   return (
@@ -11,7 +12,7 @@ export default function SellerPremiumHubPage() {
             <h1 className="text-xl font-bold text-violet-900">Paket Premium</h1>
           </div>
           <p className="mt-2 text-sm leading-relaxed text-slate-600">
-            Tingkatkan visibilitas komoditas dan toko kamu di Peronline dengan akun premium.
+            Tingkatkan visibilitas komoditas dan toko kamu di {BRAND_NAME} dengan akun premium.
           </p>
         </div>
 

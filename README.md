@@ -1,4 +1,4 @@
-# Peronline — Frontend Website
+# Peronlite — Frontend Website
 
 Versi web dari aplikasi mobile `frontend/` (React Native / Expo), mengikuti UI mobile dan aturan di `AGENTS.md`.
 

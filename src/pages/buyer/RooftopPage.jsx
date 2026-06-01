@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { ChevronDown, ChevronLeft, Filter, MapPin, Search, Sprout, X } from "lucide-react";
 import api from "@/utils/api";
@@ -6,14 +6,45 @@ import { API_ENDPOINTS } from "@/utils/endpoints";
 import { useDebounce } from "@/hooks/useDebounce";
 import CategoryChips from "@/components/home/CategoryChips";
 import StoreCategoryChips from "@/components/home/StoreCategoryChips";
+import AdProductCarousel from "@/components/home/AdProductCarousel";
 import RooftopSellerCard from "@/components/rooftop/RooftopSellerCard";
 import RegencySearchModal from "@/components/regency/RegencySearchModal";
 import Modal from "@/components/ui/Modal";
 import BrandLogo from "@/components/brand/BrandLogo";
 
+const PAGE_SIZE = 20;
+
+function buildRooftopQuery({ keyword, category, regencyCode, storeCategory, offset }) {
+  const q = new URLSearchParams({
+    product_type: "rooftop",
+    search: keyword || "",
+    category_id: category || "",
+    regency_code: regencyCode || "",
+    limit: String(PAGE_SIZE),
+    offset: String(offset)
+  });
+  if (storeCategory) q.set("store_category", storeCategory);
+  return q.toString();
+}
+
+function buildAdQuery({ keyword, category, regencyCode, storeCategory }) {
+  const q = new URLSearchParams({
+    product_type: "regular",
+    is_highlight: "1",
+    search: keyword || "",
+    category_id: category || "",
+    regency_code: regencyCode || "",
+    limit: "20",
+    offset: "0"
+  });
+  if (storeCategory) q.set("store_category", storeCategory);
+  return q.toString();
+}
+
 export default function RooftopPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [items, setItems] = useState([]);
+  const [adProducts, setAdProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [keywordInput, setKeywordInput] = useState("");
   const keyword = useDebounce(keywordInput, 300);
@@ -22,29 +53,35 @@ export default function RooftopPage() {
   const [regencyCode, setRegencyCode] = useState("");
   const [regencyLabel, setRegencyLabel] = useState("");
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [pageIndex, setPageIndex] = useState(0);
+  const [hasMore, setHasMore] = useState(true);
   const [filterOpen, setFilterOpen] = useState(false);
   const [locationOpen, setLocationOpen] = useState(false);
+  const fetchGen = useRef(0);
+  const loadMoreRef = useRef(null);
+  const loadMoreFnRef = useRef(() => {});
 
-  const load = useCallback(async () => {
+  const loadInitial = useCallback(async () => {
+    fetchGen.current += 1;
+    const gen = fetchGen.current;
     setLoading(true);
+    setPageIndex(0);
+    setHasMore(true);
     try {
-      const q = new URLSearchParams({
-        product_type: "rooftop",
-        search: keyword || "",
-        category_id: category || "",
-        regency_code: regencyCode || "",
-        limit: "50",
-        offset: "0"
-      });
-      if (storeCategory) q.set("store_category", storeCategory);
-      const [pRes, cRes] = await Promise.all([
-        api.get(`${API_ENDPOINTS.PRODUCTS.LIST}?${q.toString()}`),
+      const [pRes, adRes, cRes] = await Promise.all([
+        api.get(`${API_ENDPOINTS.PRODUCTS.LIST}?${buildRooftopQuery({ keyword, category, regencyCode, storeCategory, offset: 0 })}`),
+        api.get(`${API_ENDPOINTS.PRODUCTS.LIST}?${buildAdQuery({ keyword, category, regencyCode, storeCategory })}`),
         api.get(API_ENDPOINTS.CATEGORIES.LIST)
       ]);
-      setItems(Array.isArray(pRes.data) ? pRes.data : []);
+      if (gen !== fetchGen.current) return;
+      const rows = Array.isArray(pRes.data) ? pRes.data : [];
+      setItems(rows);
+      setAdProducts(Array.isArray(adRes.data) ? adRes.data : []);
+      setHasMore(rows.length >= PAGE_SIZE);
       setCategories(cRes.data || []);
     } finally {
-      setLoading(false);
+      if (gen === fetchGen.current) setLoading(false);
     }
   }, [keyword, category, regencyCode, storeCategory]);
 
@@ -61,8 +98,50 @@ export default function RooftopPage() {
   }, [storeCategory, setSearchParams]);
 
   useEffect(() => {
-    load();
-  }, [load]);
+    loadInitial();
+  }, [loadInitial]);
+
+  const loadMore = useCallback(async () => {
+    if (loading || loadingMore || !hasMore) return;
+    const genAtStart = fetchGen.current;
+    setLoadingMore(true);
+    try {
+      const nextPageIndex = pageIndex + 1;
+      const offset = nextPageIndex * PAGE_SIZE;
+      const pRes = await api.get(
+        `${API_ENDPOINTS.PRODUCTS.LIST}?${buildRooftopQuery({ keyword, category, regencyCode, storeCategory, offset })}`
+      );
+      if (genAtStart !== fetchGen.current) return;
+      const rows = Array.isArray(pRes.data) ? pRes.data : [];
+      if (!rows.length) {
+        setHasMore(false);
+        return;
+      }
+      setItems((prev) => [...prev, ...rows]);
+      setPageIndex(nextPageIndex);
+      setHasMore(rows.length >= PAGE_SIZE);
+    } catch {
+      if (genAtStart !== fetchGen.current) return;
+      setHasMore(false);
+    } finally {
+      if (genAtStart === fetchGen.current) setLoadingMore(false);
+    }
+  }, [loading, loadingMore, hasMore, pageIndex, keyword, category, regencyCode, storeCategory]);
+
+  loadMoreFnRef.current = loadMore;
+
+  useEffect(() => {
+    const node = loadMoreRef.current;
+    if (!node) return undefined;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting) loadMoreFnRef.current();
+      },
+      { rootMargin: "120px" }
+    );
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, []);
 
   const hasActiveFilters = Boolean(category || regencyCode || storeCategory);
 
@@ -75,18 +154,28 @@ export default function RooftopPage() {
 
   return (
     <div className="min-h-full bg-slate-50">
-      {/* Hero */}
       <div className="relative overflow-hidden bg-gradient-to-br from-[#FFD700] via-[#f5c400] to-[#e6b800] px-4 pb-6 pt-3 sm:px-6">
         <div className="pointer-events-none absolute -right-8 -top-8 h-32 w-32 rounded-full bg-white/20" />
         <div className="pointer-events-none absolute -bottom-6 left-1/4 h-24 w-24 rounded-full bg-white/15" />
         <div className="relative mx-auto max-w-2xl">
-          <Link
-            to="/"
-            className="mb-3 inline-flex items-center gap-1 rounded-full bg-white/90 px-3 py-1 text-xs font-semibold text-slate-800 shadow-sm backdrop-blur"
-          >
-            <ChevronLeft size={16} />
-            Beranda
-          </Link>
+          <div className="mb-3 flex items-center justify-between gap-2">
+            <Link
+              to="/"
+              className="inline-flex shrink-0 items-center gap-1 rounded-full bg-white/90 px-3 py-1 text-xs font-semibold text-slate-800 shadow-sm backdrop-blur"
+            >
+              <ChevronLeft size={16} />
+              Beranda
+            </Link>
+            <button
+              type="button"
+              onClick={() => setLocationOpen(true)}
+              className="inline-flex min-w-0 max-w-[50%] items-center gap-1 rounded-full bg-white/90 px-3 py-1 text-xs font-semibold text-slate-800 shadow-sm backdrop-blur"
+            >
+              <MapPin size={14} className="shrink-0 text-amber-700" />
+              <span className="truncate">{regencyLabel || "Semua kota"}</span>
+              <ChevronDown size={12} className="shrink-0 opacity-70" />
+            </button>
+          </div>
           <div className="flex items-start justify-between gap-3">
             <div>
               <div className="mb-1 flex items-center gap-2">
@@ -105,19 +194,8 @@ export default function RooftopPage() {
         </div>
       </div>
 
-      {/* Sticky toolbar */}
       <header className="sticky top-0 z-20 border-b border-slate-200/80 bg-white/95 px-3 py-3 shadow-sm backdrop-blur sm:px-4">
         <div className="mx-auto max-w-2xl space-y-2.5">
-          <button
-            type="button"
-            onClick={() => setLocationOpen(true)}
-            className="inline-flex max-w-full items-center gap-1.5 rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-sm font-semibold text-slate-700 transition hover:border-amber-300 hover:bg-amber-50"
-          >
-            <MapPin size={16} className="shrink-0 text-amber-600" />
-            <span className="truncate">{regencyLabel || "Semua daerah"}</span>
-            <ChevronDown size={14} className="shrink-0 text-slate-400" />
-          </button>
-
           <div className="flex gap-2">
             <div className="relative min-w-0 flex-1">
               <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
@@ -148,7 +226,7 @@ export default function RooftopPage() {
                 <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2.5 py-1 text-xs font-semibold text-amber-900">
                   <MapPin size={12} />
                   {regencyLabel}
-                  <button type="button" onClick={() => { setRegencyCode(""); setRegencyLabel(""); }} aria-label="Hapus filter daerah">
+                  <button type="button" onClick={() => { setRegencyCode(""); setRegencyLabel(""); }} aria-label="Hapus filter kota">
                     <X size={12} />
                   </button>
                 </span>
@@ -170,8 +248,11 @@ export default function RooftopPage() {
       </header>
 
       <div className="mx-auto max-w-2xl space-y-2 px-3 py-3 sm:px-4">
+      <StoreCategoryChips value={storeCategory} onChange={setStoreCategory} loading={loading} />
+        {!loading && adProducts.length > 0 ? (
+          <AdProductCarousel products={adProducts} viewAllTo="/iklan-produk" />
+        ) : null}
         <CategoryChips categories={categories} value={category} onChange={setCategory} loading={loading} />
-        <StoreCategoryChips value={storeCategory} onChange={setStoreCategory} loading={loading} />
       </div>
 
       <main className="mx-auto max-w-2xl space-y-3 px-3 pb-10 sm:px-4">
@@ -191,7 +272,7 @@ export default function RooftopPage() {
           <div className="rounded-2xl border border-dashed border-slate-300 bg-white px-6 py-14 text-center">
             <Sprout className="mx-auto text-amber-500" size={40} />
             <p className="mt-3 font-bold text-slate-800">Belum ada listing Roof Top</p>
-            <p className="mt-1 text-sm text-slate-500">Coba ubah filter daerah atau kata kunci pencarian.</p>
+            <p className="mt-1 text-sm text-slate-500">Coba ubah filter kota atau kata kunci pencarian.</p>
             {hasActiveFilters ? (
               <button type="button" onClick={clearFilters} className="mt-4 text-sm font-bold text-amber-700 underline">
                 Reset filter
@@ -199,6 +280,16 @@ export default function RooftopPage() {
             ) : null}
           </div>
         )}
+
+        <div
+          ref={loadMoreRef}
+          className={`flex justify-center py-4 ${!hasMore || loading ? "pointer-events-none invisible h-0 py-0" : ""}`}
+          aria-hidden={!hasMore || loading}
+        >
+          {loadingMore && hasMore ? (
+            <span className="h-6 w-6 animate-spin rounded-full border-2 border-amber-600 border-t-transparent" />
+          ) : null}
+        </div>
       </main>
 
       <RegencySearchModal
@@ -248,7 +339,7 @@ export default function RooftopPage() {
         >
           <span className="inline-flex items-center gap-2 truncate">
             <MapPin size={18} className="shrink-0 text-amber-600" />
-            {regencyLabel || "Semua daerah"}
+            {regencyLabel || "Semua kota"}
           </span>
           <ChevronDown size={18} className="shrink-0 text-slate-500" />
         </button>

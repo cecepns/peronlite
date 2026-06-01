@@ -1,9 +1,12 @@
 import { NavLink } from "react-router-dom";
-import { Home, UserCircle, LayoutGrid, Image, Settings } from "lucide-react";
+import { Home, UserCircle, LayoutGrid, Image, Settings, Sprout } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 
 const linkClass = ({ isActive }) =>
   `flex flex-1 flex-col items-center gap-0.5 py-2 text-[10px] font-semibold transition ${isActive ? "text-blue-600" : "text-slate-500"}`;
+
+const rooftopLinkClass = ({ isActive }) =>
+  `flex flex-1 flex-col items-center gap-0.5 py-2 text-[10px] font-semibold transition ${isActive ? "text-amber-700" : "text-slate-500"}`;
 
 export default function BottomNav() {
   const { user } = useAuth();
@@ -16,6 +19,10 @@ export default function BottomNav() {
           <NavLink to="/" end className={linkClass}>
             <Home size={22} />
             Home
+          </NavLink>
+          <NavLink to="/roof-top" className={rooftopLinkClass}>
+            <Sprout size={22} />
+            Roof Top
           </NavLink>
           <NavLink to="/akun" className={linkClass}>
             <UserCircle size={22} />
@@ -33,6 +40,10 @@ export default function BottomNav() {
           <NavLink to="/" end className={linkClass} data-intro-mobile-seller-home>
             <Home size={20} />
             Home
+          </NavLink>
+          <NavLink to="/roof-top" className={rooftopLinkClass}>
+            <Sprout size={20} />
+            Roof Top
           </NavLink>
           <NavLink to="/seller/iklan" className={linkClass} data-intro-mobile-seller-iklan>
             <LayoutGrid size={20} />
@@ -59,6 +70,10 @@ export default function BottomNav() {
             <Home size={22} />
             Home
           </NavLink>
+          <NavLink to="/roof-top" className={rooftopLinkClass}>
+            <Sprout size={22} />
+            Roof Top
+          </NavLink>
           <NavLink to="/admin" end className={linkClass} data-intro-mobile-admin-dashboard>
             <LayoutGrid size={22} />
             Dashboard
@@ -82,6 +97,10 @@ export default function BottomNav() {
         <NavLink to="/" end className={linkClass}>
           <Home size={22} />
           Home
+        </NavLink>
+        <NavLink to="/roof-top" className={rooftopLinkClass}>
+          <Sprout size={22} />
+          Roof Top
         </NavLink>
         <NavLink to="/akun" className={linkClass}>
           <UserCircle size={22} />

@@ -10,7 +10,7 @@ const NAV_BTN =
 
 const HEIGHT_CLASS = "h-[148px] sm:h-[168px]";
 
-export default function AdProductCarousel({ products }) {
+export default function AdProductCarousel({ products, viewAllTo = "/iklan-produk" }) {
   const trackRef = useRef(null);
   const indexRef = useRef(0);
   const [activeIndex, setActiveIndex] = useState(0);
@@ -65,9 +65,16 @@ export default function AdProductCarousel({ products }) {
 
   return (
     <section className="min-w-0 space-y-2" aria-labelledby="home-ads-heading">
-      <h2 id="home-ads-heading" className="text-lg font-extrabold tracking-tight text-slate-900 sm:text-xl">
-        Iklan Produk
-      </h2>
+      <div className="flex items-center justify-between gap-2">
+        <h2 id="home-ads-heading" className="text-lg font-extrabold tracking-tight text-slate-900 sm:text-xl">
+          Iklan Produk
+        </h2>
+        {viewAllTo ? (
+          <Link to={viewAllTo} className="shrink-0 text-xs font-bold text-blue-600 hover:underline">
+            Lihat semua
+          </Link>
+        ) : null}
+      </div>
       <div
         className={`banner-carousel relative overflow-hidden rounded-2xl border border-amber-200 bg-gradient-to-br from-amber-50 to-white shadow-sm ${HEIGHT_CLASS}`}
         aria-roledescription="carousel"

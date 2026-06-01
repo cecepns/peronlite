@@ -4,6 +4,7 @@ import api from "@/utils/api";
 import { API_ENDPOINTS } from "@/utils/endpoints";
 import { useAuth } from "@/context/AuthContext";
 import { BannerPageStack, HubCard } from "@/components/banner/BannerUi";
+import { BRAND_NAME } from "@/constants/brand";
 
 export default function SellerBannerHubPage() {
   const { user } = useAuth();
@@ -30,7 +31,7 @@ export default function SellerBannerHubPage() {
             <h1 className="text-xl font-bold text-blue-900">Iklan Banner</h1>
           </div>
           <p className="mt-2 text-sm leading-relaxed text-slate-600">
-            Promosikan toko atau komoditas kamu di halaman utama Peronline dengan iklan banner.
+            Promosikan toko atau komoditas kamu di halaman utama {BRAND_NAME} dengan iklan banner.
           </p>
         </div>
 

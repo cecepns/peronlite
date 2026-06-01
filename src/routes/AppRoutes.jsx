@@ -6,6 +6,8 @@ import RooftopPage from "@/pages/buyer/RooftopPage";
 import ProductDetailPage from "@/pages/buyer/ProductDetailPage";
 import StoreFrontPage from "@/pages/buyer/StoreFrontPage";
 import ProfilePage from "@/pages/buyer/ProfilePage";
+import EditProfilePage from "@/pages/buyer/EditProfilePage";
+import ProductAdsPage from "@/pages/buyer/ProductAdsPage";
 import LoginPage from "@/pages/auth/LoginPage";
 import RegisterPage from "@/pages/auth/RegisterPage";
 import TermsPage from "@/pages/auth/TermsPage";
@@ -43,6 +45,8 @@ export default function AppRoutes() {
         <Route path="jasa/:id" element={<ProductDetailPage />} />
         <Route path="toko/:userId" element={<StoreFrontPage />} />
         <Route path="akun" element={<ProfilePage />} />
+        <Route path="akun/edit" element={<EditProfilePage />} />
+        <Route path="iklan-produk" element={<ProductAdsPage />} />
         <Route path="roof-top" element={<RooftopPage />} />
         <Route path="syarat-ketentuan" element={<TermsPage />} />
 

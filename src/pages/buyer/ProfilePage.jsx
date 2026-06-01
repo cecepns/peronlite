@@ -3,11 +3,10 @@ import { Link, useNavigate } from "react-router-dom";
 import {
   ArrowRight,
   Building2,
-  Camera,
-  CheckCircle,
   FileText,
   LogOut,
   MessageCircle,
+  Pencil,
   Search,
   Sparkles,
   UserPlus
@@ -19,7 +18,6 @@ import { useAuth } from "@/context/AuthContext";
 import { resolveImageUrl } from "@/utils/image";
 import { buildWhatsAppUrl } from "@/utils/phone";
 import Button from "@/components/ui/Button";
-import Input from "@/components/ui/Input";
 import BrandLogo from "@/components/brand/BrandLogo";
 import { BRAND_NAME } from "@/constants/brand";
 
@@ -88,23 +86,10 @@ function GuestProfile({ adminWaUrl }) {
 }
 
 export default function ProfilePage() {
-  const { user, setUser, logout, becomeSeller } = useAuth();
+  const { user, logout, becomeSeller } = useAuth();
   const navigate = useNavigate();
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState("");
-  const [avatarFile, setAvatarFile] = useState(null);
-  const [avatarPreview, setAvatarPreview] = useState("");
   const [switchingRole, setSwitchingRole] = useState(false);
-  const [saving, setSaving] = useState(false);
   const [adminWhatsapp, setAdminWhatsapp] = useState("");
-
-  useEffect(() => {
-    if (!user) return;
-    setName(user.name || "");
-    setEmail(user.email || "");
-    setPhone(user.phone || "");
-  }, [user]);
 
   useEffect(() => {
     api
@@ -123,35 +108,7 @@ export default function ProfilePage() {
     );
   }
 
-  const avatarUri = avatarPreview || (user.avatar ? resolveImageUrl(user.avatar) : "https://i.pravatar.cc/200?img=12");
-
-  const onPickAvatar = (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setAvatarFile(file);
-    setAvatarPreview(URL.createObjectURL(file));
-  };
-
-  const saveProfile = async () => {
-    setSaving(true);
-    try {
-      const form = new FormData();
-      form.append("name", name);
-      form.append("email", email);
-      if (phone) form.append("phone", phone);
-      if (avatarFile) form.append("avatar", avatarFile);
-      const res = await api.put(API_ENDPOINTS.USERS.UPDATE(user.id), form, {
-        headers: { "Content-Type": "multipart/form-data" }
-      });
-      setUser(res.data);
-      setAvatarFile(null);
-      toast.success("Profile diupdate");
-    } catch {
-      toast.error("Gagal update profile");
-    } finally {
-      setSaving(false);
-    }
-  };
+  const avatarUri = user.avatar ? resolveImageUrl(user.avatar) : "https://i.pravatar.cc/200?img=12";
 
   const onBecomeSeller = async () => {
     setSwitchingRole(true);
@@ -175,19 +132,15 @@ export default function ProfilePage() {
   return (
     <div className="mx-auto w-full max-w-md rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5" data-intro-account>
       <img src={avatarUri} alt="" className="mx-auto h-24 w-24 rounded-full bg-slate-200 object-cover" />
-      <label className="mt-3 flex cursor-pointer items-center justify-center gap-2 rounded-lg border border-blue-200 bg-blue-50 py-2.5 text-sm font-bold text-blue-600">
-        <Camera size={18} />
-        Ganti Foto Profil
-        <input type="file" accept="image/*" className="hidden" onChange={onPickAvatar} />
-      </label>
-      <div className="mt-3 space-y-2">
-        <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Nama" />
-        <Input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Email" />
-        <Input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="Nomor HP" />
+      <div className="mt-3 text-center">
+        <p className="text-lg font-extrabold text-slate-900">{user.name}</p>
+        <p className="text-sm text-slate-500">{user.email}</p>
+        {user.phone ? <p className="text-sm text-slate-500">{user.phone}</p> : null}
       </div>
+
       {user.role === "seller" ? (
         <div
-          className={`mt-3 rounded-xl border p-3 text-sm ${
+          className={`mt-4 rounded-xl border p-3 text-sm ${
             premiumActive ? "border-green-200 bg-green-50 text-green-900" : "border-amber-200 bg-amber-50 text-amber-900"
           }`}
         >
@@ -206,10 +159,11 @@ export default function ProfilePage() {
           ) : null}
         </div>
       ) : null}
+
       <div className="mt-4 space-y-2">
-        <Button variant="primary" className="w-full" loading={saving} onClick={saveProfile}>
-          <CheckCircle size={18} />
-          Simpan Profile
+        <Button variant="outline" className="w-full justify-start" onClick={() => navigate("/akun/edit")}>
+          <Pencil size={18} />
+          Edit Profile
         </Button>
         {user.role === "buyer" ? (
           <Button variant="seller" className="w-full" loading={switchingRole} onClick={onBecomeSeller}>

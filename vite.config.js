@@ -12,8 +12,8 @@ export default defineConfig({
       registerType: "autoUpdate",
       includeAssets: ["logo.png"],
       manifest: {
-        name: "Peronline",
-        short_name: "Peronline",
+        name: "Peronlite",
+        short_name: "Peronlite",
         description: "Marketplace komoditas hasil pertanian Indonesia",
         theme_color: "#1d4ed8",
         background_color: "#f8fafc",

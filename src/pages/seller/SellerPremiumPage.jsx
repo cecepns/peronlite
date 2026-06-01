@@ -3,6 +3,7 @@ import { Sparkles } from "lucide-react";
 import api from "@/utils/api";
 import { API_ENDPOINTS } from "@/utils/endpoints";
 import { formatRupiah } from "@/utils/format";
+import { BRAND_NAME } from "@/constants/brand";
 
 /** Ringkasan pricelist untuk admin (kelola penuh di mobile admin). */
 export default function SellerPremiumPage() {
@@ -18,7 +19,7 @@ export default function SellerPremiumPage() {
         <Sparkles className="text-violet-600" />
         <h1 className="text-xl font-bold text-slate-900">Order Premium</h1>
       </div>
-      <p className="text-sm text-slate-600">Tingkatkan visibilitas komoditas Anda di Peronline. Hubungi admin untuk aktivasi setelah memilih paket.</p>
+      <p className="text-sm text-slate-600">Tingkatkan visibilitas komoditas Anda di {BRAND_NAME}. Hubungi admin untuk aktivasi setelah memilih paket.</p>
       <div className="grid gap-3 sm:grid-cols-2">
         {items.map((item) => (
           <div key={item.id} className="rounded-xl border border-violet-200 bg-gradient-to-br from-violet-50 to-white p-4">

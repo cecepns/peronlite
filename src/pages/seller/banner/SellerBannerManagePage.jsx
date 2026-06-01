@@ -225,7 +225,7 @@ export default function SellerBannerManagePage() {
         </div>
       ) : null}
 
-      <SectionCard title="Pasang Banner + Order Iklan" subtitle="Upload banner, pilih tujuan klik, lalu pilih paket tayang">
+      <SectionCard title="Order Iklan Banner" subtitle="Upload banner, pilih tujuan klik, lalu pilih paket tayang">
         <form onSubmit={submitBannerOrder} className="space-y-4">
           <FormField label="Judul Campaign">
             <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Judul banner" disabled={formLocked} />
@@ -368,22 +368,42 @@ export default function SellerBannerManagePage() {
             </FormField>
           )}
 
-          <FormField label="Paket Iklan Banner" hint="Pilih durasi tayang dan harga. Lihat detail lengkap di menu Price List.">
-            <select
-              value={pricelistId}
-              onChange={(e) => setPricelistId(e.target.value)}
-              disabled={formLocked || !pricelist.length}
-              className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm"
-            >
-              <option value="">Pilih paket iklan banner</option>
-              {pricelist.map((item) => (
-                <option key={item.id} value={String(item.id)}>
-                  {formatBannerPackageLabel(item)}
-                </option>
-              ))}
-            </select>
+          <FormField label="Paket Iklan Banner" hint="Pilih satu paket — lihat detail lengkap di menu Price List.">
+            {pricelist.length === 0 ? (
+              <p className="text-center text-sm text-slate-500">Belum ada paket harga.</p>
+            ) : (
+              <ul className="divide-y divide-slate-100 rounded-lg border border-slate-200 bg-slate-50">
+                {pricelist.map((item) => {
+                  const selected = String(pricelistId) === String(item.id);
+                  return (
+                    <li key={item.id}>
+                      <button
+                        type="button"
+                        disabled={formLocked}
+                        onClick={() => setPricelistId(String(item.id))}
+                        className={`flex w-full items-center justify-between gap-3 px-3 py-3 text-left transition hover:bg-white ${
+                          selected ? "bg-blue-50" : ""
+                        }`}
+                      >
+                        <span>
+                          <span className="block text-base font-extrabold text-slate-900">{formatRupiah(item.price)}</span>
+                          <span className="text-xs text-slate-500">{formatBannerPackageLabel(item)}</span>
+                        </span>
+                        <span
+                          className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 ${
+                            selected ? "border-blue-600 bg-blue-600 text-white" : "border-slate-300 bg-white"
+                          }`}
+                        >
+                          {selected ? <Check size={14} strokeWidth={3} /> : null}
+                        </span>
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
             {selectedPackage ? (
-              <div className="rounded-lg border border-blue-200 bg-blue-50 p-3 text-sm">
+              <div className="mt-3 rounded-lg border border-blue-200 bg-blue-50 p-3 text-sm">
                 <p className="font-bold text-blue-900">{formatBannerPackageLabel(selectedPackage)}</p>
                 <p className="mt-1 text-slate-600">
                   Banner akan tayang {selectedPackage.duration_days} hari setelah admin menyetujui pembayaran.
@@ -409,7 +429,7 @@ export default function SellerBannerManagePage() {
           ) : null}
 
           <Button type="submit" loading={submitting} disabled={formLocked} className="w-full">
-            Kirim Banner & Order Iklan
+            Kirim Permintaan Iklan Banner
           </Button>
         </form>
       </SectionCard>

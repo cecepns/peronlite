@@ -2,7 +2,7 @@ export const DEFAULT_TERMS_SECTIONS = [
   {
     title: "1. Ketentuan Umum",
     body:
-      "Dengan mendaftar dan menggunakan aplikasi Peronline, Anda menyetujui syarat dan ketentuan ini. Peronline adalah platform penghubung antara pembeli komoditas hasil pertanian (buyer) dan penjual komoditas (seller)."
+      "Dengan mendaftar dan menggunakan aplikasi Peronlite, Anda menyetujui syarat dan ketentuan ini. Peronlite adalah platform penghubung antara pembeli komoditas hasil pertanian (buyer) dan penjual komoditas (seller)."
   },
   {
     title: "2. Akun Pengguna",
