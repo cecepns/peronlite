@@ -4,6 +4,7 @@ import toast from "react-hot-toast";
 import api from "@/utils/api";
 import { API_ENDPOINTS } from "@/utils/endpoints";
 import { formatRupiah } from "@/utils/format";
+import { resolveImageUrl } from "@/utils/image";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import { AdminPageStack, AdminScreenHeader, AdminSectionCard } from "@/components/admin/AdminPageUi";
@@ -14,10 +15,16 @@ export default function AdminPricelistEditor({
   backTo,
   listBasePath,
   paymentFieldKey,
+  paymentQrisFieldKey,
+  paymentQrisType,
   packageLabelPrefix = "Paket"
 }) {
   const [pricelist, setPricelist] = useState([]);
   const [paymentInstructions, setPaymentInstructions] = useState("");
+  const [qrisImage, setQrisImage] = useState("");
+  const [qrisFile, setQrisFile] = useState(null);
+  const [qrisPreview, setQrisPreview] = useState("");
+  const [uploadingQris, setUploadingQris] = useState(false);
   const [price, setPrice] = useState("");
   const [durationDays, setDurationDays] = useState("");
   const [editingId, setEditingId] = useState(null);
@@ -29,9 +36,12 @@ export default function AdminPricelistEditor({
   }, [listBasePath]);
 
   useEffect(() => {
-    api.get(API_ENDPOINTS.ADMIN.CONTACT).then((res) => setPaymentInstructions(res.data?.[paymentFieldKey] || ""));
+    api.get(API_ENDPOINTS.ADMIN.CONTACT).then((res) => {
+      setPaymentInstructions(res.data?.[paymentFieldKey] || "");
+      if (paymentQrisFieldKey) setQrisImage(res.data?.[paymentQrisFieldKey] || "");
+    });
     loadPricelist();
-  }, [loadPricelist, paymentFieldKey]);
+  }, [loadPricelist, paymentFieldKey, paymentQrisFieldKey]);
 
   const resetForm = () => {
     setPrice("");
@@ -81,6 +91,42 @@ export default function AdminPricelistEditor({
       toast.success("Instruksi bayar disimpan");
     } catch {
       toast.error("Gagal menyimpan");
+    }
+  };
+
+  const uploadQris = async () => {
+    if (!qrisFile || !paymentQrisType) return;
+    setUploadingQris(true);
+    try {
+      const form = new FormData();
+      form.append("payment_type", paymentQrisType);
+      form.append("qris_image", qrisFile);
+      const res = await api.post(API_ENDPOINTS.ADMIN.PAYMENT_QRIS, form, {
+        headers: { "Content-Type": "multipart/form-data" }
+      });
+      setQrisImage(res.data?.path || "");
+      setQrisFile(null);
+      if (qrisPreview) URL.revokeObjectURL(qrisPreview);
+      setQrisPreview("");
+      toast.success("Gambar QRIS disimpan");
+    } catch {
+      toast.error("Gagal upload QRIS");
+    } finally {
+      setUploadingQris(false);
+    }
+  };
+
+  const removeQris = async () => {
+    if (!paymentQrisType || !window.confirm("Hapus gambar QRIS?")) return;
+    try {
+      await api.delete(API_ENDPOINTS.ADMIN.PAYMENT_QRIS_DELETE(paymentQrisType));
+      setQrisImage("");
+      setQrisFile(null);
+      if (qrisPreview) URL.revokeObjectURL(qrisPreview);
+      setQrisPreview("");
+      toast.success("QRIS dihapus");
+    } catch {
+      toast.error("Gagal menghapus QRIS");
     }
   };
 
@@ -151,6 +197,40 @@ export default function AdminPricelistEditor({
           </Button>
         </AdminSectionCard>
       </form>
+
+      {paymentQrisType ? (
+        <AdminSectionCard title="Gambar QRIS" subtitle="Seller dapat melihat saat klik tombol di halaman order">
+          {(qrisPreview || qrisImage) && (
+            <img
+              src={qrisPreview || resolveImageUrl(qrisImage)}
+              alt="Preview QRIS"
+              className="mx-auto mb-3 max-h-48 w-full max-w-xs rounded-lg border border-slate-200 object-contain"
+            />
+          )}
+          <input
+            type="file"
+            accept="image/jpeg,image/png,image/webp,image/gif"
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (!file) return;
+              if (qrisPreview) URL.revokeObjectURL(qrisPreview);
+              setQrisFile(file);
+              setQrisPreview(URL.createObjectURL(file));
+            }}
+            className="block w-full text-sm text-slate-600"
+          />
+          <div className="mt-3 flex flex-wrap gap-2">
+            <Button type="button" loading={uploadingQris} disabled={!qrisFile} onClick={uploadQris}>
+              Upload QRIS
+            </Button>
+            {qrisImage ? (
+              <Button type="button" variant="outline" onClick={removeQris}>
+                Hapus QRIS
+              </Button>
+            ) : null}
+          </div>
+        </AdminSectionCard>
+      ) : null}
     </AdminPageStack>
   );
 }

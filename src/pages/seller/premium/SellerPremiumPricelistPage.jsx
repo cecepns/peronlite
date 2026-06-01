@@ -8,10 +8,12 @@ import { PREMIUM_REQUEST_STATUS } from "@/utils/banner";
 import { BannerPageStack, ScreenHeader, SectionCard } from "@/components/banner/BannerUi";
 import Button from "@/components/ui/Button";
 import PaymentProofUpload from "@/components/seller/PaymentProofUpload";
+import PaymentMethodSection from "@/components/seller/PaymentMethodSection";
 
 export default function SellerPremiumPricelistPage() {
   const [pricelist, setPricelist] = useState([]);
   const [paymentInstructions, setPaymentInstructions] = useState("");
+  const [qrisImage, setQrisImage] = useState("");
   const [selectedId, setSelectedId] = useState(null);
   const [paymentProof, setPaymentProof] = useState(null);
   const [paymentProofPreview, setPaymentProofPreview] = useState("");
@@ -26,6 +28,7 @@ export default function SellerPremiumPricelistPage() {
     ]);
     setPricelist(Array.isArray(priceRes.data) ? priceRes.data : []);
     setPaymentInstructions(contactRes.data?.premium_payment_instructions || "");
+    setQrisImage(contactRes.data?.premium_qris_image || "");
     const pending = (Array.isArray(mineRes.data) ? mineRes.data : []).find(
       (r) => r.request_type === "premium" && r.status === "pending"
     );
@@ -146,11 +149,7 @@ export default function SellerPremiumPricelistPage() {
         </SectionCard>
       ) : null}
 
-      {paymentInstructions ? (
-        <SectionCard title="Cara Order & Bayar">
-          <p className="whitespace-pre-wrap text-sm leading-relaxed text-slate-600">{paymentInstructions}</p>
-        </SectionCard>
-      ) : null}
+      <PaymentMethodSection instructions={paymentInstructions} qrisImage={qrisImage} />
     </BannerPageStack>
   );
 }

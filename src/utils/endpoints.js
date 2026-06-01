@@ -49,6 +49,8 @@ export const API_ENDPOINTS = {
   TERMS: "/terms",
   ADMIN: {
     CONTACT: "/admin/contact",
+    PAYMENT_QRIS: "/admin/payment-qris",
+    PAYMENT_QRIS_DELETE: (type) => `/admin/payment-qris/${type}`,
     STATS: "/admin/stats",
     PRODUCTS: "/admin/products",
     FEED_ADS: "/admin/feed-ads",

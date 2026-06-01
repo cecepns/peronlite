@@ -9,14 +9,16 @@ import Input from "@/components/ui/Input";
 
 export default function AdminSettingsPage() {
   const [whatsapp, setWhatsapp] = useState("");
-  const [termsSections, setTermsSections] = useState([{ title: "", body: "" }]);
+  const [termsText, setTermsText] = useState("");
+  const [termsUpdatedAt, setTermsUpdatedAt] = useState(null);
   const [savingContact, setSavingContact] = useState(false);
+  const [savingTerms, setSavingTerms] = useState(false);
 
   useEffect(() => {
-    api.get(API_ENDPOINTS.ADMIN.CONTACT).then((res) => setWhatsapp(res.data?.whatsapp || ""));
-    api.get(API_ENDPOINTS.TERMS).then((res) => {
-      const rows = res.data?.sections;
-      if (Array.isArray(rows) && rows.length) setTermsSections(rows);
+    api.get(API_ENDPOINTS.ADMIN.CONTACT).then((res) => {
+      setWhatsapp(res.data?.whatsapp || "");
+      setTermsText(res.data?.terms_text || "");
+      setTermsUpdatedAt(res.data?.terms_updated_at || null);
     });
   }, []);
 
@@ -33,9 +35,29 @@ export default function AdminSettingsPage() {
     }
   };
 
+  const saveTerms = async (e) => {
+    e.preventDefault();
+    setSavingTerms(true);
+    try {
+      await api.put(API_ENDPOINTS.ADMIN.CONTACT, { terms_text: termsText || "" });
+      const res = await api.get(API_ENDPOINTS.ADMIN.CONTACT);
+      setTermsUpdatedAt(res.data?.terms_updated_at || null);
+      toast.success("Syarat & ketentuan disimpan");
+    } catch {
+      toast.error("Gagal menyimpan syarat & ketentuan");
+    } finally {
+      setSavingTerms(false);
+    }
+  };
+
+  const updatedLabel = termsUpdatedAt
+    ? new Date(termsUpdatedAt).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })
+    : null;
+
   return (
     <div className="space-y-6" data-intro-admin-page-settings>
       <h1 className="text-xl font-bold text-slate-900">Settings</h1>
+
       <form onSubmit={saveContact} className="max-w-md space-y-3 rounded-xl border border-slate-200 bg-white p-4">
         <div className="flex items-center gap-2 font-bold text-slate-900">
           <Phone size={20} className="text-blue-600" />
@@ -46,17 +68,33 @@ export default function AdminSettingsPage() {
           Simpan Kontak
         </Button>
       </form>
-      <div className="rounded-xl border border-slate-200 bg-white p-4">
-        <div className="flex items-center gap-2 font-bold">
-          <FileText size={20} className="text-blue-600" />
-          Syarat & Ketentuan
+
+      <form onSubmit={saveTerms} className="max-w-3xl space-y-3 rounded-xl border border-slate-200 bg-white p-4">
+        <div className="flex flex-wrap items-start justify-between gap-2">
+          <div className="flex items-center gap-2 font-bold text-slate-900">
+            <FileText size={20} className="text-blue-600" />
+            Syarat & Ketentuan
+          </div>
+          <Link to="/syarat-ketentuan" className="text-sm font-semibold text-blue-600 hover:underline">
+            Pratinjau halaman →
+          </Link>
         </div>
-        <p className="mt-1 text-sm text-slate-500">Kelola teks S&K yang ditampilkan di aplikasi.</p>
-        <Link to="/syarat-ketentuan" className="mt-3 inline-block text-sm font-semibold text-blue-600">
-          Lihat halaman S&K →
-        </Link>
-        <p className="mt-2 text-xs text-slate-400">{termsSections.length} section terdaftar di API.</p>
-      </div>
+        <p className="text-sm text-slate-500">
+          Format: judul dengan <code className="rounded bg-slate-100 px-1"># </code> di awal baris, paragraf di baris
+          berikutnya. Pisahkan bagian dengan baris kosong.
+        </p>
+        {updatedLabel ? <p className="text-xs text-slate-400">Terakhir diperbarui: {updatedLabel}</p> : null}
+        <textarea
+          value={termsText}
+          onChange={(e) => setTermsText(e.target.value)}
+          rows={16}
+          className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5 font-mono text-sm outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
+          placeholder={"# 1. Ketentuan Umum\nIsi paragraf...\n\n# 2. Akun Pengguna\n..."}
+        />
+        <Button type="submit" loading={savingTerms}>
+          Simpan Syarat & Ketentuan
+        </Button>
+      </form>
     </div>
   );
 }

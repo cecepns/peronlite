@@ -9,12 +9,32 @@ import { formatRupiah } from "@/utils/format";
 import { BannerPageStack, ScreenHeader, SectionCard } from "@/components/banner/BannerUi";
 import Button from "@/components/ui/Button";
 import PaymentProofUpload from "@/components/seller/PaymentProofUpload";
+import PaymentMethodSection from "@/components/seller/PaymentMethodSection";
 import SellerProductAsyncSelect from "@/components/seller/SellerProductAsyncSelect";
+
+function formatOrderDate(value) {
+  if (!value) return "—";
+  return new Date(value).toLocaleDateString("id-ID", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit"
+  });
+}
+
+function statusBadgeClass(status) {
+  if (status === "approved") return "bg-green-100 text-green-800";
+  if (status === "rejected") return "bg-red-100 text-red-800";
+  return "bg-amber-100 text-amber-900";
+}
 
 export default function SellerFeedOrderPage() {
   const { user } = useAuth();
   const [pricelist, setPricelist] = useState([]);
   const [paymentInstructions, setPaymentInstructions] = useState("");
+  const [qrisImage, setQrisImage] = useState("");
+  const [feedOrders, setFeedOrders] = useState([]);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [selectedPackageId, setSelectedPackageId] = useState("");
   const [paymentProof, setPaymentProof] = useState(null);
@@ -26,13 +46,14 @@ export default function SellerFeedOrderPage() {
     const [priceRes, contactRes, mineRes] = await Promise.all([
       api.get(API_ENDPOINTS.FEED_PRICELIST),
       api.get(API_ENDPOINTS.ADMIN.CONTACT),
-      api.get(API_ENDPOINTS.SELLER_REQUESTS.MINE)
+      api.get(`${API_ENDPOINTS.SELLER_REQUESTS.MINE}?request_type=feed`)
     ]);
     setPricelist(Array.isArray(priceRes.data) ? priceRes.data : []);
     setPaymentInstructions(contactRes.data?.feed_payment_instructions || "");
-    const pending = (Array.isArray(mineRes.data) ? mineRes.data : []).find(
-      (r) => r.request_type === "feed" && r.status === "pending"
-    );
+    setQrisImage(contactRes.data?.feed_qris_image || "");
+    const orders = Array.isArray(mineRes.data) ? mineRes.data : [];
+    setFeedOrders(orders);
+    const pending = orders.find((r) => r.status === "pending");
     setPendingRequest(pending || null);
   }, []);
 
@@ -90,11 +111,39 @@ export default function SellerFeedOrderPage() {
         backTo="/seller/feed"
       />
 
+      {feedOrders.length > 0 ? (
+        <SectionCard title={`Riwayat Order Iklan Feed (${feedOrders.length})`} subtitle="Semua permintaan feed yang pernah Anda kirim">
+          <ul className="divide-y divide-slate-100">
+            {feedOrders.map((order) => (
+              <li key={order.id} className="py-3 first:pt-0 last:pb-0">
+                <div className="flex flex-wrap items-start justify-between gap-2">
+                  <div className="min-w-0">
+                    <p className="font-bold text-slate-900">{order.product_name || `Produk #${order.product_id}`}</p>
+                    <p className="mt-0.5 text-sm text-slate-600">{order.package_label || formatRupiah(order.package_price)}</p>
+                    <p className="mt-1 text-xs text-slate-400">{formatOrderDate(order.created_at)}</p>
+                  </div>
+                  <span className={`shrink-0 rounded-full px-2.5 py-0.5 text-xs font-bold ${statusBadgeClass(order.status)}`}>
+                    {BANNER_REQUEST_STATUS[order.status] || order.status}
+                  </span>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </SectionCard>
+      ) : (
+        <SectionCard title="Riwayat Order Iklan Feed">
+          <p className="text-center text-sm text-slate-500">Belum ada order iklan feed.</p>
+        </SectionCard>
+      )}
+
       {pendingRequest ? (
         <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
           <p className="text-sm font-bold text-amber-900">Permintaan Feed Menunggu</p>
+          {pendingRequest.product_name ? (
+            <p className="mt-1 text-sm text-slate-700">{pendingRequest.product_name}</p>
+          ) : null}
           {pendingRequest.package_label ? (
-            <p className="mt-1 text-sm text-slate-700">{pendingRequest.package_label}</p>
+            <p className="mt-0.5 text-sm text-slate-600">{pendingRequest.package_label}</p>
           ) : null}
           <p className="mt-2 inline-block rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-bold text-amber-900">
             {BANNER_REQUEST_STATUS[pendingRequest.status] || pendingRequest.status}
@@ -164,11 +213,7 @@ export default function SellerFeedOrderPage() {
         </>
       ) : null}
 
-      {paymentInstructions ? (
-        <SectionCard title="Cara Order & Bayar">
-          <p className="whitespace-pre-wrap text-sm leading-relaxed text-slate-600">{paymentInstructions}</p>
-        </SectionCard>
-      ) : null}
+      <PaymentMethodSection instructions={paymentInstructions} qrisImage={qrisImage} />
     </BannerPageStack>
   );
 }

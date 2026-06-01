@@ -158,7 +158,7 @@ export default function ProductFormPage() {
         <Input label="Harga (angka)" type="number" value={form.price} onChange={(e) => setForm((f) => ({ ...f, price: e.target.value }))} required />
       ) : (
         <div className="space-y-2">
-          <p className="text-sm font-bold text-slate-700">Daftar Komoditas (max 10)</p>
+          <p className="text-sm font-bold text-slate-700">Daftar Komoditas (max 20)</p>
           {rooftopItems.map((item, index) => (
             <div key={index} className="flex gap-2">
               <Input
@@ -187,7 +187,7 @@ export default function ProductFormPage() {
               ) : null}
             </div>
           ))}
-          {rooftopItems.length < 10 ? (
+          {rooftopItems.length < 20 ? (
             <Button type="button" variant="outline" className="w-full" onClick={() => setRooftopItems((r) => [...r, emptyItem()])}>
               <Plus size={16} />
               Tambah baris

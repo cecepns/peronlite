@@ -9,6 +9,8 @@ export default function AdminBannerPricelistPage() {
       backTo="/admin/banner"
       listBasePath={API_ENDPOINTS.BANNER_PRICELIST}
       paymentFieldKey="banner_payment_instructions"
+      paymentQrisFieldKey="banner_qris_image"
+      paymentQrisType="banner"
       packageLabelPrefix="Banner"
     />
   );

@@ -9,6 +9,8 @@ export default function AdminFeedPricelistPage() {
       backTo="/admin/feed"
       listBasePath={API_ENDPOINTS.FEED_PRICELIST}
       paymentFieldKey="feed_payment_instructions"
+      paymentQrisFieldKey="feed_qris_image"
+      paymentQrisType="feed"
       packageLabelPrefix="Feed"
     />
   );

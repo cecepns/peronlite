@@ -9,6 +9,8 @@ export default function AdminPremiumPricelistPage() {
       backTo="/admin/premium"
       listBasePath={API_ENDPOINTS.PREMIUM_PRICELIST}
       paymentFieldKey="premium_payment_instructions"
+      paymentQrisFieldKey="premium_qris_image"
+      paymentQrisType="premium"
       packageLabelPrefix="Premium"
     />
   );

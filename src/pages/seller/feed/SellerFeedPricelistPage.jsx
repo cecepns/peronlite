@@ -3,12 +3,14 @@ import api from "@/utils/api";
 import { API_ENDPOINTS } from "@/utils/endpoints";
 import { formatFeedPackageLabel } from "@/utils/banner";
 import { BannerPageStack, ScreenHeader, SectionCard } from "@/components/banner/BannerUi";
+import PaymentMethodSection from "@/components/seller/PaymentMethodSection";
 import Button from "@/components/ui/Button";
 import { Link } from "react-router-dom";
 
 export default function SellerFeedPricelistPage() {
   const [pricelist, setPricelist] = useState([]);
   const [paymentInstructions, setPaymentInstructions] = useState("");
+  const [qrisImage, setQrisImage] = useState("");
 
   useEffect(() => {
     const load = async () => {
@@ -18,6 +20,7 @@ export default function SellerFeedPricelistPage() {
       ]);
       setPricelist(Array.isArray(priceRes.data) ? priceRes.data : []);
       setPaymentInstructions(contactRes.data?.feed_payment_instructions || "");
+      setQrisImage(contactRes.data?.feed_qris_image || "");
     };
     load();
   }, []);
@@ -45,11 +48,7 @@ export default function SellerFeedPricelistPage() {
         </Link>
       </SectionCard>
 
-      {paymentInstructions ? (
-        <SectionCard title="Cara Bayar">
-          <p className="whitespace-pre-wrap text-sm leading-relaxed text-slate-600">{paymentInstructions}</p>
-        </SectionCard>
-      ) : null}
+      <PaymentMethodSection instructions={paymentInstructions} qrisImage={qrisImage} title="Cara Bayar" />
     </BannerPageStack>
   );
 }

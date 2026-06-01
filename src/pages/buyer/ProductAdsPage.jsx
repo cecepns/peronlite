@@ -6,6 +6,7 @@ import { API_ENDPOINTS } from "@/utils/endpoints";
 import ProductCard from "@/components/product/ProductCard";
 import ProductCardSkeleton from "@/components/product/ProductCardSkeleton";
 import BrandLogo from "@/components/brand/BrandLogo";
+import StoreCategoryChips from "@/components/home/StoreCategoryChips";
 
 const PAGE_SIZE = 20;
 
@@ -29,6 +30,7 @@ export default function ProductAdsPage() {
   const [loadingMore, setLoadingMore] = useState(false);
   const [pageIndex, setPageIndex] = useState(0);
   const [hasMore, setHasMore] = useState(true);
+  const [storeCategory, setStoreCategory] = useState("");
   const fetchGen = useRef(0);
   const loadMoreRef = useRef(null);
   const loadMoreFnRef = useRef(() => {});
@@ -40,7 +42,7 @@ export default function ProductAdsPage() {
     setPageIndex(0);
     setHasMore(true);
     try {
-      const res = await api.get(`${API_ENDPOINTS.PRODUCTS.LIST}?${buildQuery({ offset: 0 })}`);
+      const res = await api.get(`${API_ENDPOINTS.PRODUCTS.LIST}?${buildQuery({ offset: 0, storeCategory })}`);
       if (gen !== fetchGen.current) return;
       const rows = Array.isArray(res.data) ? res.data : [];
       setProducts(rows);
@@ -52,7 +54,7 @@ export default function ProductAdsPage() {
     } finally {
       if (gen === fetchGen.current) setLoading(false);
     }
-  }, []);
+  }, [storeCategory]);
 
   useEffect(() => {
     loadInitial();
@@ -65,7 +67,7 @@ export default function ProductAdsPage() {
     try {
       const nextPageIndex = pageIndex + 1;
       const offset = nextPageIndex * PAGE_SIZE;
-      const res = await api.get(`${API_ENDPOINTS.PRODUCTS.LIST}?${buildQuery({ offset })}`);
+      const res = await api.get(`${API_ENDPOINTS.PRODUCTS.LIST}?${buildQuery({ offset, storeCategory })}`);
       if (genAtStart !== fetchGen.current) return;
       const rows = Array.isArray(res.data) ? res.data : [];
       if (!rows.length) {
@@ -81,7 +83,7 @@ export default function ProductAdsPage() {
     } finally {
       if (genAtStart === fetchGen.current) setLoadingMore(false);
     }
-  }, [loading, loadingMore, hasMore, pageIndex]);
+  }, [loading, loadingMore, hasMore, pageIndex, storeCategory]);
 
   loadMoreFnRef.current = loadMore;
 
@@ -134,6 +136,11 @@ export default function ProductAdsPage() {
       </div>
 
       <div className="mx-auto max-w-5xl py-4 sm:py-5">
+        <div className="mb-4">
+          <p className="mb-2 text-xs font-bold uppercase tracking-wide text-slate-500">Filter penjual</p>
+          <StoreCategoryChips value={storeCategory} onChange={setStoreCategory} loading={loading} />
+        </div>
+
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-3 lg:grid-cols-4">
           {loading
             ? Array.from({ length: 8 }).map((_, i) => (
@@ -155,7 +162,9 @@ export default function ProductAdsPage() {
             </span>
             <p className="mt-4 text-base font-bold text-slate-800">Belum ada iklan produk aktif</p>
             <p className="mt-1 max-w-xs text-sm text-slate-500">
-              Produk iklan akan muncul di sini setelah penjual mengaktifkan paket iklan feed.
+              {storeCategory
+                ? "Tidak ada iklan untuk kategori penjual ini. Coba filter lain."
+                : "Produk iklan akan muncul di sini setelah penjual mengaktifkan paket iklan feed."}
             </p>
             <Link
               to="/"

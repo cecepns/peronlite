@@ -3,10 +3,12 @@ import api from "@/utils/api";
 import { API_ENDPOINTS } from "@/utils/endpoints";
 import { formatBannerPackageLabel } from "@/utils/banner";
 import { BannerPageStack, ScreenHeader, SectionCard } from "@/components/banner/BannerUi";
+import PaymentMethodSection from "@/components/seller/PaymentMethodSection";
 
 export default function SellerBannerPricelistPage() {
   const [pricelist, setPricelist] = useState([]);
   const [paymentInstructions, setPaymentInstructions] = useState("");
+  const [qrisImage, setQrisImage] = useState("");
 
   useEffect(() => {
     const load = async () => {
@@ -16,6 +18,7 @@ export default function SellerBannerPricelistPage() {
       ]);
       setPricelist(Array.isArray(priceRes.data) ? priceRes.data : []);
       setPaymentInstructions(contactRes.data?.banner_payment_instructions || "");
+      setQrisImage(contactRes.data?.banner_qris_image || "");
     };
     load();
   }, []);
@@ -38,11 +41,7 @@ export default function SellerBannerPricelistPage() {
         )}
       </SectionCard>
 
-      {paymentInstructions ? (
-        <SectionCard title="Cara Bayar">
-          <p className="whitespace-pre-wrap text-sm leading-relaxed text-slate-600">{paymentInstructions}</p>
-        </SectionCard>
-      ) : null}
+      <PaymentMethodSection instructions={paymentInstructions} qrisImage={qrisImage} title="Cara Bayar" />
     </BannerPageStack>
   );
 }

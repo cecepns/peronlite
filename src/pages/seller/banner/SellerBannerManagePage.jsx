@@ -12,6 +12,7 @@ import Input from "@/components/ui/Input";
 import Pagination from "@/components/ui/Pagination";
 import { BannerPageStack, FormField, ScreenHeader, SectionCard, StatusBadge } from "@/components/banner/BannerUi";
 import PaymentProofUpload from "@/components/seller/PaymentProofUpload";
+import PaymentMethodSection from "@/components/seller/PaymentMethodSection";
 
 export default function SellerBannerManagePage() {
   const { user } = useAuth();
@@ -19,6 +20,7 @@ export default function SellerBannerManagePage() {
   const [products, setProducts] = useState([]);
   const [pricelist, setPricelist] = useState([]);
   const [paymentInstructions, setPaymentInstructions] = useState("");
+  const [qrisImage, setQrisImage] = useState("");
   const [productSearch, setProductSearch] = useState("");
   const [linkType, setLinkType] = useState("product");
   const [linkId, setLinkId] = useState("");
@@ -68,6 +70,7 @@ export default function SellerBannerManagePage() {
     ]);
     setPricelist(Array.isArray(priceRes.data) ? priceRes.data : []);
     setPaymentInstructions(contactRes.data?.banner_payment_instructions || "");
+    setQrisImage(contactRes.data?.banner_qris_image || "");
     const pending = (mineRes.data || []).find((r) => r.request_type === "banner" && r.status === "pending");
     setPendingRequest(pending || null);
   }, []);
@@ -424,15 +427,13 @@ export default function SellerBannerManagePage() {
             />
           </FormField>
 
-          {paymentInstructions ? (
-            <p className="whitespace-pre-wrap text-sm leading-relaxed text-slate-600">{paymentInstructions}</p>
-          ) : null}
-
           <Button type="submit" loading={submitting} disabled={formLocked} className="w-full">
             Kirim Permintaan Iklan Banner
           </Button>
         </form>
       </SectionCard>
+
+      <PaymentMethodSection instructions={paymentInstructions} qrisImage={qrisImage} />
 
       <h2 className="text-lg font-extrabold text-slate-900">Riwayat Banner Saya</h2>
       {bannerPagination.total > 0 ? (
