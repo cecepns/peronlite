@@ -113,7 +113,7 @@ export default function ProductDetailPage() {
 
   const onShare = async () => {
     if (!detail) return;
-    const url = `${window.location.origin}/jasa/${detail.slug || detail.id}`;
+    const url = `${window.location.origin}/produk/${detail.slug || detail.id}`;
     try {
       if (navigator.share) {
         await navigator.share({ title: detail.name, text: `Lihat komoditas ini di ${BRAND_NAME}: ${detail.name}`, url });

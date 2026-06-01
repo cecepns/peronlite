@@ -14,10 +14,10 @@ export default function SellerDashboardPage() {
   }, []);
 
   const cards = [
-    { to: "/seller/produk", icon: LayoutGrid, label: "Kelola Produk", desc: "Biasa & Roof Top" },
+    { to: "/seller/produk", icon: LayoutGrid, label: "Kelola Produk", desc: "Tambah produk biasa & roof top" },
     { to: "/seller/toko", icon: Store, label: "Toko / Usaha", desc: "Kategori, logo, alamat" },
     { to: "/seller/banner", icon: Image, label: "Iklan Banner", desc: "Promosi di beranda" },
-    { to: "/seller/feed", icon: Megaphone, label: "Iklan Feed", desc: "Order produk di beranda" },
+    { to: "/seller/feed", icon: Megaphone, label: "Iklan Feed", desc: "Promosi produk di beranda" },
     { to: "/seller/premium", icon: Sparkles, label: "Premium", desc: "Paket & order" }
   ];
 

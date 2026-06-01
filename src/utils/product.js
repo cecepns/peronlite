@@ -13,6 +13,12 @@ export function isRooftopProduct(product) {
   return product?.product_type === "rooftop";
 }
 
+/** Path halaman detail produk (slug atau id). */
+export function getProductPath(slugOrId) {
+  if (!slugOrId) return "/";
+  return `/produk/${slugOrId}`;
+}
+
 export function isFeedAdActive(product) {
   if (!product?.is_highlight) return false;
   if (!product.highlight_expires_at) return false;

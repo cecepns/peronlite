@@ -92,33 +92,34 @@ export default function StoreFrontPage() {
 
       {loading ? (
         <div className="flex justify-center py-20">
-          <span className="h-10 w-10 animate-spin rounded-full border-2 border-teal-600 border-t-transparent" />
+          <span className="h-10 w-10 animate-spin rounded-full border-2 border-blue-600 border-t-transparent" />
         </div>
       ) : store ? (
         <>
-          <div className="relative -mx-3 h-14 rounded-b-3xl bg-teal-600 sm:-mx-4" />
-          <div className="-mt-9 mx-auto max-w-lg rounded-2xl border border-slate-200 bg-white p-4 shadow-md">
-            <div className="mx-auto -mt-12 mb-3 w-fit rounded-full border-4 border-teal-100 bg-white p-1">
+          <div className="mx-auto mt-4 max-w-lg rounded-2xl border border-slate-200 bg-white p-4 shadow-md">
+            <div className="mx-auto mb-3 w-fit rounded-full border-4 border-blue-100 bg-white p-1 shadow-sm">
               {store.logo ? (
                 <img src={resolveImageUrl(store.logo)} alt="" className="h-20 w-20 rounded-full object-cover" />
               ) : (
-                <div className="flex h-20 w-20 items-center justify-center rounded-full bg-teal-50 text-3xl font-extrabold text-teal-700">
+                <div className="flex h-20 w-20 items-center justify-center rounded-full bg-blue-50 text-3xl font-extrabold text-blue-700">
                   {getInitial(store.name)}
                 </div>
               )}
             </div>
+
             <div className="text-center">
               <div className="flex items-center justify-center gap-2">
-                <Building2 size={18} className="text-teal-600" />
+                <Building2 size={18} className="text-blue-600" />
                 <h2 className="text-xl font-extrabold text-slate-900">{store.name}</h2>
               </div>
               <p className="mt-1 text-sm font-semibold text-slate-500">Etalase produk dan layanan</p>
             </div>
+
             {(locationLine || store.phone) && (
               <div className="mt-4 space-y-2">
                 {locationLine ? (
                   <div className="flex gap-3 rounded-xl bg-slate-50 p-3">
-                    <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-teal-50 text-teal-600">
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
                       <MapPin size={18} />
                     </div>
                     <div>
@@ -129,7 +130,7 @@ export default function StoreFrontPage() {
                 ) : null}
                 {store.phone ? (
                   <div className="flex gap-3 rounded-xl bg-slate-50 p-3">
-                    <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-teal-50 text-teal-600">
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
                       <Phone size={18} />
                     </div>
                     <div>
@@ -140,6 +141,7 @@ export default function StoreFrontPage() {
                 ) : null}
               </div>
             )}
+
             {plainDesc ? (
               <div className="mt-4 border-t border-slate-100 pt-4">
                 <p className="text-xs font-bold uppercase tracking-wide text-slate-500">Tentang toko</p>
@@ -151,7 +153,7 @@ export default function StoreFrontPage() {
           <div className="mt-6 flex items-center justify-between">
             <h3 className="text-lg font-extrabold text-slate-900">Produk</h3>
             {products.length > 0 ? (
-              <span className="rounded-full bg-teal-100 px-2.5 py-0.5 text-xs font-extrabold text-teal-800">
+              <span className="rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-extrabold text-blue-800">
                 {hasMore ? `${products.length}+` : products.length}
               </span>
             ) : null}
@@ -164,7 +166,9 @@ export default function StoreFrontPage() {
           </div>
           {!products.length ? <p className="py-8 text-center text-sm text-slate-500">Belum ada produk di etalase ini.</p> : null}
           <div ref={loadMoreRef} className="py-4 text-center">
-            {loadingMore ? <span className="inline-block h-6 w-6 animate-spin rounded-full border-2 border-teal-600 border-t-transparent" /> : null}
+            {loadingMore ? (
+              <span className="inline-block h-6 w-6 animate-spin rounded-full border-2 border-blue-600 border-t-transparent" />
+            ) : null}
           </div>
         </>
       ) : (

@@ -72,7 +72,7 @@ export default function BannerCarousel({ banners }) {
   const onBannerPress = (item) => {
     const linkId = item.link_id != null && item.link_id !== "" ? Number(item.link_id) : NaN;
     if (Number.isNaN(linkId)) return;
-    if (item.link_type === "product") navigate(`/jasa/${linkId}`);
+    if (item.link_type === "product") navigate(`/produk/${linkId}`);
     if (item.link_type === "store") navigate(`/toko/${linkId}`);
   };
 

@@ -204,7 +204,7 @@ export default function AdminFeedManagePage() {
                 )}
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2">
-                    <Link to={`/jasa/${item.id}`} className="font-bold text-slate-900 hover:text-blue-600">
+                    <Link to={`/produk/${item.slug || item.id}`} className="font-bold text-slate-900 hover:text-blue-600">
                       {item.name}
                     </Link>
                     <StatusBadge active={!!item.is_feed_active} />

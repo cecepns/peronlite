@@ -9,7 +9,7 @@ import { BRAND_NAME } from "@/constants/brand";
 export default function RooftopSellerCard({ product }) {
   const items = parseRooftopItems(product).slice(0, 3);
   const location = product.product_location_name || product.store_regency_name || product.store_address || "";
-  const href = `/jasa/${product.slug || product.id}`;
+  const href = `/produk/${product.slug || product.id}`;
   const storeLabel = product.store_name || product.name;
 
   const onShare = async (e) => {

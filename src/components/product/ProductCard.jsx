@@ -4,7 +4,7 @@ import { formatRupiah } from "@/utils/format";
 import { resolveImageUrl } from "@/utils/image";
 
 export default function ProductCard({ product, to }) {
-  const href = to || `/jasa/${product.id}`;
+  const href = to || `/produk/${product.slug || product.id}`;
 
   return (
     <Link

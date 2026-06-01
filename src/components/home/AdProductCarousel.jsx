@@ -82,7 +82,7 @@ export default function AdProductCarousel({ products, viewAllTo = "/iklan-produk
       >
         <div ref={trackRef} className="banner-carousel__track" onScroll={syncIndexFromScroll}>
           {products.map((product) => {
-            const href = `/jasa/${product.slug || product.id}`;
+            const href = `/produk/${product.slug || product.id}`;
             return (
               <div key={product.id} className="banner-carousel__slide">
                 <Link to={href} className="flex h-full w-full gap-3 p-3 sm:p-3.5">

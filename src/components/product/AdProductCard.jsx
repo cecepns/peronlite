@@ -5,7 +5,7 @@ import { resolveImageUrl } from "@/utils/image";
 
 /** Kartu iklan produk — ukuran lebih besar untuk feed highlight. */
 export default function AdProductCard({ product, to }) {
-  const href = to || `/jasa/${product.id}`;
+  const href = to || `/produk/${product.slug || product.id}`;
 
   return (
     <Link
