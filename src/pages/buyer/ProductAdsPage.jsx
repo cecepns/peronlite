@@ -1,12 +1,16 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { ChevronLeft, Megaphone } from "lucide-react";
+import { ChevronDown, ChevronLeft, Filter, Megaphone } from "lucide-react";
 import api from "@/utils/api";
 import { API_ENDPOINTS } from "@/utils/endpoints";
+import { useDebounce } from "@/hooks/useDebounce";
 import ProductCard from "@/components/product/ProductCard";
 import ProductCardSkeleton from "@/components/product/ProductCardSkeleton";
 import BrandLogo from "@/components/brand/BrandLogo";
 import StoreCategoryChips from "@/components/home/StoreCategoryChips";
+import CategoryChips from "@/components/home/CategoryChips";
+import RegencySearchModal from "@/components/regency/RegencySearchModal";
+import Modal from "@/components/ui/Modal";
 
 const PAGE_SIZE = 20;
 
@@ -26,14 +30,26 @@ function buildQuery({ offset, search, category, regencyCode, storeCategory }) {
 
 export default function ProductAdsPage() {
   const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [keywordInput, setKeywordInput] = useState("");
+  const keyword = useDebounce(keywordInput, 300);
+  const [category, setCategory] = useState("");
+  const [storeCategory, setStoreCategory] = useState("");
+  const [regencyCode, setRegencyCode] = useState("");
+  const [regencyLabel, setRegencyLabel] = useState("");
+  const [filterOpen, setFilterOpen] = useState(false);
+  const [locationOpen, setLocationOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [pageIndex, setPageIndex] = useState(0);
   const [hasMore, setHasMore] = useState(true);
-  const [storeCategory, setStoreCategory] = useState("");
   const fetchGen = useRef(0);
   const loadMoreRef = useRef(null);
   const loadMoreFnRef = useRef(() => {});
+
+  useEffect(() => {
+    api.get(API_ENDPOINTS.CATEGORIES.LIST).then((res) => setCategories(res.data || [])).catch(() => setCategories([]));
+  }, []);
 
   const loadInitial = useCallback(async () => {
     fetchGen.current += 1;
@@ -42,7 +58,9 @@ export default function ProductAdsPage() {
     setPageIndex(0);
     setHasMore(true);
     try {
-      const res = await api.get(`${API_ENDPOINTS.PRODUCTS.LIST}?${buildQuery({ offset: 0, storeCategory })}`);
+      const res = await api.get(
+        `${API_ENDPOINTS.PRODUCTS.LIST}?${buildQuery({ offset: 0, search: keyword, category, regencyCode, storeCategory })}`
+      );
       if (gen !== fetchGen.current) return;
       const rows = Array.isArray(res.data) ? res.data : [];
       setProducts(rows);
@@ -54,7 +72,7 @@ export default function ProductAdsPage() {
     } finally {
       if (gen === fetchGen.current) setLoading(false);
     }
-  }, [storeCategory]);
+  }, [keyword, category, regencyCode, storeCategory]);
 
   useEffect(() => {
     loadInitial();
@@ -67,7 +85,9 @@ export default function ProductAdsPage() {
     try {
       const nextPageIndex = pageIndex + 1;
       const offset = nextPageIndex * PAGE_SIZE;
-      const res = await api.get(`${API_ENDPOINTS.PRODUCTS.LIST}?${buildQuery({ offset, storeCategory })}`);
+      const res = await api.get(
+        `${API_ENDPOINTS.PRODUCTS.LIST}?${buildQuery({ offset, search: keyword, category, regencyCode, storeCategory })}`
+      );
       if (genAtStart !== fetchGen.current) return;
       const rows = Array.isArray(res.data) ? res.data : [];
       if (!rows.length) {
@@ -83,7 +103,7 @@ export default function ProductAdsPage() {
     } finally {
       if (genAtStart === fetchGen.current) setLoadingMore(false);
     }
-  }, [loading, loadingMore, hasMore, pageIndex, storeCategory]);
+  }, [loading, loadingMore, hasMore, pageIndex, keyword, category, regencyCode, storeCategory]);
 
   loadMoreFnRef.current = loadMore;
 
@@ -99,6 +119,8 @@ export default function ProductAdsPage() {
     observer.observe(node);
     return () => observer.disconnect();
   }, []);
+
+  const hasActiveFilters = Boolean(category || regencyCode || storeCategory);
 
   return (
     <div className="min-h-screen">
@@ -136,8 +158,25 @@ export default function ProductAdsPage() {
       </div>
 
       <div className="mx-auto max-w-5xl py-4 sm:py-5">
-        <div className="mb-4">
-          <p className="mb-2 text-xs font-bold uppercase tracking-wide text-slate-500">Filter penjual</p>
+        <div className="sticky top-0 z-20 -mx-3 mb-4 space-y-2 border-b border-slate-100 bg-white px-3 py-2.5 shadow-sm sm:-mx-0 sm:rounded-xl sm:border sm:px-3">
+          <div className="flex gap-2">
+            <input
+              value={keywordInput}
+              onChange={(e) => setKeywordInput(e.target.value)}
+              placeholder="Cari iklan produk..."
+              className="flex-1 rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-100"
+            />
+            <button
+              type="button"
+              onClick={() => setFilterOpen(true)}
+              className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border ${
+                hasActiveFilters ? "border-amber-400 bg-amber-50 text-amber-800" : "border-slate-200 bg-white text-slate-600"
+              }`}
+              aria-label="Buka filter"
+            >
+              <Filter size={20} />
+            </button>
+          </div>
           <StoreCategoryChips value={storeCategory} onChange={setStoreCategory} loading={loading} />
         </div>
 
@@ -162,8 +201,8 @@ export default function ProductAdsPage() {
             </span>
             <p className="mt-4 text-base font-bold text-slate-800">Belum ada iklan produk aktif</p>
             <p className="mt-1 max-w-xs text-sm text-slate-500">
-              {storeCategory
-                ? "Tidak ada iklan untuk kategori penjual ini. Coba filter lain."
+              {hasActiveFilters || keyword
+                ? "Tidak ada iklan untuk filter ini. Coba kata kunci atau filter lain."
                 : "Produk iklan akan muncul di sini setelah penjual mengaktifkan paket iklan feed."}
             </p>
             <Link
@@ -186,6 +225,46 @@ export default function ProductAdsPage() {
           ) : null}
         </div>
       </div>
+
+      <RegencySearchModal
+        open={locationOpen}
+        onClose={() => setLocationOpen(false)}
+        selectedCode={regencyCode || undefined}
+        title="Filter kabupaten / kota"
+        onSelect={({ code, name, province_name }) => {
+          setRegencyCode(code || "");
+          setRegencyLabel(!code ? "" : province_name ? `${name} · ${province_name}` : name);
+        }}
+      />
+
+      <Modal open={filterOpen} onClose={() => setFilterOpen(false)} title="Filter Iklan Produk">
+        <p className="mb-2 text-sm font-bold text-slate-700">Komoditas</p>
+        <CategoryChips categories={categories} value={category} onChange={setCategory} loading={false} />
+        <p className="mb-2 mt-4 text-sm font-bold text-slate-700">Kabupaten / Kota</p>
+        <button
+          type="button"
+          onClick={() => {
+            setFilterOpen(false);
+            setLocationOpen(true);
+          }}
+          className="mb-4 flex w-full items-center justify-between rounded-lg border border-slate-200 bg-white px-3 py-3 text-left text-sm font-semibold"
+        >
+          {regencyLabel || "Semua Kota"}
+          <ChevronDown size={18} className="text-slate-500" />
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            setCategory("");
+            setStoreCategory("");
+            setRegencyCode("");
+            setRegencyLabel("");
+          }}
+          className="w-full rounded-lg border border-slate-200 bg-white py-2.5 text-sm font-bold text-slate-700"
+        >
+          Reset Filter
+        </button>
+      </Modal>
     </div>
   );
 }

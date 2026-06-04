@@ -2,6 +2,7 @@ import { Outlet } from "react-router-dom";
 import BottomNav from "./BottomNav";
 import SidebarNav from "./SidebarNav";
 import AnnouncementModal from "@/components/announcement/AnnouncementModal";
+import AdminPendingAlerts from "@/components/admin/AdminPendingAlerts";
 import AppIntro from "./AppIntro";
 import { SidebarLayoutProvider, useSidebarLayout } from "@/context/SidebarLayoutContext";
 
@@ -12,6 +13,7 @@ function AppShellContent({ children }) {
     <div className={hasSidebar ? "lg:h-dvh lg:overflow-hidden" : "min-h-dvh"}>
       <AppIntro />
       <AnnouncementModal />
+      <AdminPendingAlerts />
       <SidebarNav />
       <div
         className={`flex min-h-dvh min-w-0 flex-col transition-[margin] duration-300 ease-in-out ${

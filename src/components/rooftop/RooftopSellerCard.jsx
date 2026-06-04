@@ -48,11 +48,13 @@ export default function RooftopSellerCard({ product }) {
           {product.description ? (
             <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-slate-600">{product.description}</p>
           ) : null}
-          <ul className="mt-2.5 space-y-1 border-t border-slate-100 pt-2">
+          <ul className="mt-2 space-y-0.5 border-t border-slate-100 pt-2 sm:mt-2.5 sm:space-y-1">
             {items.map((item) => (
-              <li key={`${item.name}-${item.price}`} className="flex items-baseline justify-between gap-3 text-sm">
-                <span className="font-semibold text-slate-800">{item.name}</span>
-                <span className="shrink-0 font-extrabold tabular-nums text-slate-900">{formatRupiah(item.price)}</span>
+              <li key={`${item.name}-${item.price}`} className="flex items-start justify-between gap-2 text-[11px] leading-tight sm:text-xs">
+                <span className="line-clamp-2 min-w-0 max-w-[58%] font-semibold text-slate-800">{item.name}</span>
+                <span className="shrink-0 text-right text-[10px] font-extrabold tabular-nums text-slate-900 sm:text-[11px]">
+                  {formatRupiah(item.price)}
+                </span>
               </li>
             ))}
           </ul>

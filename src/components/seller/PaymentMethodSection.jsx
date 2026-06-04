@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { QrCode } from "lucide-react";
 import { SectionCard } from "@/components/banner/BannerUi";
-import Button from "@/components/ui/Button";
 import Modal from "@/components/ui/Modal";
 import { resolveImageUrl } from "@/utils/image";
 
@@ -17,10 +16,14 @@ export default function PaymentMethodSection({ instructions, qrisImage, title = 
           <p className="whitespace-pre-wrap text-sm leading-relaxed text-slate-600">{instructions}</p>
         ) : null}
         {qrisImage ? (
-          <Button type="button" variant="outline" className={`w-full sm:w-auto ${instructions ? "mt-3" : ""}`} onClick={() => setQrisOpen(true)}>
-            <QrCode size={18} className="mr-1.5 inline" />
+          <button
+            type="button"
+            onClick={() => setQrisOpen(true)}
+            className={`inline-flex items-center gap-1 text-sm font-bold text-blue-600 underline-offset-2 hover:underline ${instructions ? "mt-3" : ""}`}
+          >
+            <QrCode size={16} />
             Lihat gambar QRIS
-          </Button>
+          </button>
         ) : null}
       </SectionCard>
 

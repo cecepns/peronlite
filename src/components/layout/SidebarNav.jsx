@@ -18,6 +18,7 @@ import { useAuth } from "@/context/AuthContext";
 import { useSidebarLayout } from "@/context/SidebarLayoutContext";
 import BrandLogo from "@/components/brand/BrandLogo";
 import { BRAND_NAME } from "@/constants/brand";
+import { useAdminPendingCounts } from "@/hooks/useAdminPendingCounts";
 
 function navItemClass({ isActive }, expanded) {
   const base = expanded
@@ -32,6 +33,8 @@ export default function SidebarNav() {
   const { user } = useAuth();
   const { expanded, toggle, asideClass } = useSidebarLayout();
   const role = user?.role;
+  const pending = useAdminPendingCounts();
+  const pendingTotal = role === "admin" ? pending.pending_requests : 0;
 
   if (!user || role === "buyer") return null;
 
@@ -100,6 +103,11 @@ export default function SidebarNav() {
           >
             <Icon size={18} className="shrink-0" />
             {expanded ? <span className="truncate">{label}</span> : null}
+            {to === "/admin" && pendingTotal > 0 ? (
+              <span className="ml-auto flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-amber-500 px-1 text-[10px] font-bold text-white">
+                {pendingTotal > 99 ? "99+" : pendingTotal}
+              </span>
+            ) : null}
           </NavLink>
         ))}
       </nav>

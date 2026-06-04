@@ -37,7 +37,8 @@ export const API_ENDPOINTS = {
   ANNOUNCEMENTS: {
     ACTIVE: "/announcements/active",
     LIST: "/announcements",
-    DETAIL: (id) => `/announcements/${id}`
+    DETAIL: (id) => `/announcements/${id}`,
+    STATUS: (id) => `/announcements/${id}/status`
   },
   SELLER_REQUESTS: {
     LIST: "/seller-requests",

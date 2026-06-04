@@ -4,6 +4,7 @@ import toast from "react-hot-toast";
 import api from "@/utils/api";
 import { API_ENDPOINTS } from "@/utils/endpoints";
 import { useDebounce } from "@/hooks/useDebounce";
+import { ANNOUNCEMENT_IMAGE_HINT } from "@/constants/announcements";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import Modal from "@/components/ui/Modal";
@@ -108,6 +109,17 @@ export default function ManageAnnouncementsPage() {
     load();
   };
 
+  const toggleActive = async (row) => {
+    try {
+      const next = !row.is_active;
+      await api.patch(API_ENDPOINTS.ANNOUNCEMENTS.STATUS(row.id), { is_active: next });
+      toast.success(next ? "Pengumuman diaktifkan" : "Pengumuman dinonaktifkan");
+      load();
+    } catch {
+      toast.error("Gagal mengubah status");
+    }
+  };
+
   return (
     <div className="space-y-4" data-intro-admin-page-announcements>
       <div className="flex flex-wrap items-center justify-between gap-2">
@@ -128,7 +140,16 @@ export default function ManageAnnouncementsPage() {
             <div key={row.id} className="flex items-center gap-3 rounded-xl border border-slate-200 bg-white p-3">
               {row.image ? <img src={resolveImageUrl(row.image)} alt="" className="h-12 w-12 rounded-lg object-cover" /> : null}
               <div className="min-w-0 flex-1">
-                <p className="font-bold text-slate-900">{row.title}</p>
+                <div className="flex flex-wrap items-center gap-2">
+                  <p className="font-bold text-slate-900">{row.title}</p>
+                  <span
+                    className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
+                      row.is_active ? "bg-green-100 text-green-800" : "bg-slate-100 text-slate-600"
+                    }`}
+                  >
+                    {row.is_active ? "Aktif" : "Nonaktif"}
+                  </span>
+                </div>
                 <p className="truncate text-xs text-slate-500">
                   {row.body || "—"} · {row.audience}
                   {Number(row.repeat_interval_minutes) > 0
@@ -136,6 +157,17 @@ export default function ManageAnnouncementsPage() {
                     : " · setiap reload/login"}
                 </p>
               </div>
+              <button
+                type="button"
+                onClick={() => toggleActive(row)}
+                className={`rounded-lg border px-3 py-1.5 text-xs font-bold ${
+                  row.is_active
+                    ? "border-amber-200 bg-amber-50 text-amber-800"
+                    : "border-green-200 bg-green-50 text-green-800"
+                }`}
+              >
+                {row.is_active ? "Nonaktifkan" : "Aktifkan"}
+              </button>
               <Button variant="outline" onClick={() => openEdit(row)}>
                 Edit
               </Button>
@@ -169,6 +201,7 @@ export default function ManageAnnouncementsPage() {
           />
           <label className="block text-sm font-bold text-slate-700">Gambar (opsional)</label>
           <input type="file" accept="image/*" onChange={(e) => setForm((f) => ({ ...f, image: e.target.files?.[0] || null }))} />
+          <p className="text-xs leading-relaxed text-slate-500">{ANNOUNCEMENT_IMAGE_HINT}</p>
           <select
             value={form.audience}
             onChange={(e) => setForm((f) => ({ ...f, audience: e.target.value }))}

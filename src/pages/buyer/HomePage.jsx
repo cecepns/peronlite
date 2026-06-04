@@ -169,8 +169,20 @@ export default function HomePage() {
   }, []);
 
   return (
-    <div className="-mx-3 min-h-full min-w-0 bg-white px-3 pb-6 sm:-mx-4 sm:px-4">
-      <header className="pb-1 pt-2">
+    <div className="-mx-3 min-h-full min-w-0 bg-gradient-to-b from-emerald-50/80 via-white to-white px-3 pb-6 sm:-mx-4 sm:px-4">
+      <section className="relative -mx-3 mb-4 overflow-hidden bg-gradient-to-br from-emerald-800 via-green-700 to-emerald-900 px-4 py-5 sm:-mx-4 sm:px-6 sm:py-6">
+        <div className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-white/10" />
+        <div className="pointer-events-none absolute -bottom-8 left-8 h-28 w-28 rounded-full bg-lime-300/10" />
+        <div className="relative mx-auto max-w-2xl text-center text-white">
+          <p className="text-xs font-bold uppercase tracking-[0.2em] text-emerald-100">Selamat Datang</p>
+          <h2 className="mt-1 text-xl font-extrabold leading-tight sm:text-2xl">{BRAND_NAME}</h2>
+          <p className="mx-auto mt-2 max-w-md text-sm font-medium text-emerald-50/95">
+            Marketplace komoditas hasil bumi — temukan penjual, harga, dan produk pertanian terdekat.
+          </p>
+        </div>
+      </section>
+
+      <header className="pb-1 pt-0">
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-2">
             <BrandLogo className="h-14 w-auto shrink-0" />

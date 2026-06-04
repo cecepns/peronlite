@@ -21,7 +21,7 @@ import Button from "@/components/ui/Button";
 import BrandLogo from "@/components/brand/BrandLogo";
 import { BRAND_NAME } from "@/constants/brand";
 
-function GuestProfile({ adminWaUrl }) {
+function GuestProfile({ adminContacts }) {
   const features = [
     { icon: Search, text: "Cari komoditas pertanian terdekat" },
     { icon: Building2, text: "Buka toko & jual komoditas hasil bumi" },
@@ -30,9 +30,9 @@ function GuestProfile({ adminWaUrl }) {
 
   return (
     <div className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm">
-      <div className="relative bg-gradient-to-b from-blue-50 to-blue-100/50 px-5 pb-12 pt-8 text-center sm:px-6">
-        <div className="pointer-events-none absolute -right-10 -top-10 h-52 w-52 rounded-full bg-blue-600/10" />
-        <div className="pointer-events-none absolute -left-8 bottom-4 h-28 w-28 rounded-full bg-sky-400/15" />
+      <div className="relative bg-gradient-to-b from-emerald-50 to-green-100/60 px-5 pb-12 pt-8 text-center sm:px-6">
+        <div className="pointer-events-none absolute -right-10 -top-10 h-52 w-52 rounded-full bg-emerald-600/10" />
+        <div className="pointer-events-none absolute -bottom-8 left-4 h-28 w-28 rounded-full bg-lime-400/15" />
         <BrandLogo className="relative mx-auto h-28 w-auto max-w-[220px]" />
         <h1 className="relative mt-3 text-2xl font-extrabold text-slate-900">Selamat Datang di {BRAND_NAME}</h1>
         <p className="relative mx-auto mt-2 max-w-sm text-sm text-slate-600">
@@ -44,34 +44,41 @@ function GuestProfile({ adminWaUrl }) {
         <ul className="mt-3 space-y-3">
           {features.map(({ icon: Icon, text }) => (
             <li key={text} className="flex items-center gap-3">
-              <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
+              <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50 text-emerald-700">
                 <Icon size={20} />
               </span>
               <span className="text-sm font-medium text-slate-600">{text}</span>
             </li>
           ))}
         </ul>
-        <Link to="/login" className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 py-4 text-base font-bold text-white shadow-lg shadow-blue-600/30">
+        <Link to="/login" className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-700 py-4 text-base font-bold text-white shadow-lg shadow-emerald-700/30">
           Masuk ke Akun
           <ArrowRight size={20} />
         </Link>
         <Link
           to="/daftar"
-          className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl border-2 border-blue-200 bg-slate-50 py-3.5 text-base font-bold text-blue-600"
+          className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl border-2 border-emerald-200 bg-emerald-50/50 py-3.5 text-base font-bold text-emerald-800"
         >
           <UserPlus size={20} />
           Buat Akun Baru
         </Link>
-        {adminWaUrl ? (
-          <a
-            href={adminWaUrl}
-            target="_blank"
-            rel="noreferrer"
-            className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl border border-green-200 bg-green-50 py-3.5 text-base font-bold text-green-700"
-          >
-            <MessageCircle size={20} />
-            Hubungi Admin
-          </a>
+        {adminContacts?.length ? (
+          <div className="mt-3 space-y-2">
+            {adminContacts.map(({ label, url }) =>
+              url ? (
+                <a
+                  key={label}
+                  href={url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="flex w-full items-center justify-center gap-2 rounded-xl border border-green-200 bg-green-50 py-3.5 text-base font-bold text-green-700"
+                >
+                  <MessageCircle size={20} />
+                  {label}
+                </a>
+              ) : null
+            )}
+          </div>
         ) : null}
         <p className="mt-3 text-center text-[11px] leading-relaxed text-slate-400">
           Dengan mendaftar, kamu setuju{" "}
@@ -90,20 +97,35 @@ export default function ProfilePage() {
   const navigate = useNavigate();
   const [switchingRole, setSwitchingRole] = useState(false);
   const [adminWhatsapp, setAdminWhatsapp] = useState("");
+  const [adminWhatsapp2, setAdminWhatsapp2] = useState("");
 
   useEffect(() => {
     api
       .get(API_ENDPOINTS.ADMIN.CONTACT)
-      .then((res) => setAdminWhatsapp(res.data?.whatsapp || ""))
-      .catch(() => setAdminWhatsapp(""));
+      .then((res) => {
+        setAdminWhatsapp(res.data?.whatsapp || "");
+        setAdminWhatsapp2(res.data?.whatsapp_2 || "");
+      })
+      .catch(() => {
+        setAdminWhatsapp("");
+        setAdminWhatsapp2("");
+      });
   }, []);
 
-  const adminWaUrlGuest = buildWhatsAppUrl(adminWhatsapp, `Halo Admin ${BRAND_NAME}, saya butuh bantuan.`);
+  const buildAdminContact = (phone, label) => {
+    const url = buildWhatsAppUrl(phone, `Halo ${label} ${BRAND_NAME}, saya butuh bantuan.`);
+    return url ? { label, url } : null;
+  };
+
+  const adminContacts = [
+    buildAdminContact(adminWhatsapp, "Admin 1"),
+    buildAdminContact(adminWhatsapp2, "Admin 2")
+  ].filter(Boolean);
 
   if (!user) {
     return (
       <div className="mx-auto w-full max-w-md">
-        <GuestProfile adminWaUrl={adminWaUrlGuest || ""} />
+        <GuestProfile adminContacts={adminContacts} />
       </div>
     );
   }
@@ -128,6 +150,7 @@ export default function ProfilePage() {
     ? new Date(user.premium_expires_at).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })
     : null;
   const adminWaUrl = buildWhatsAppUrl(adminWhatsapp, `Halo Admin ${BRAND_NAME}, saya butuh bantuan.`);
+  const adminWaUrl2 = buildWhatsAppUrl(adminWhatsapp2, `Halo Admin 2 ${BRAND_NAME}, saya butuh bantuan.`);
 
   return (
     <div className="mx-auto w-full max-w-md rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5" data-intro-account>
@@ -184,7 +207,17 @@ export default function ProfilePage() {
             onClick={() => window.open(adminWaUrl, "_blank", "noopener,noreferrer")}
           >
             <MessageCircle size={18} />
-            Hubungi Admin
+            Hubungi Admin 1
+          </Button>
+        ) : null}
+        {adminWaUrl2 ? (
+          <Button
+            variant="outline"
+            className="w-full justify-start border-green-200 text-green-700 hover:bg-green-50"
+            onClick={() => window.open(adminWaUrl2, "_blank", "noopener,noreferrer")}
+          >
+            <MessageCircle size={18} />
+            Hubungi Admin 2
           </Button>
         ) : null}
         <Button variant="outline" className="w-full justify-start" onClick={() => navigate("/syarat-ketentuan")}>

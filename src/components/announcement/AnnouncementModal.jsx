@@ -5,6 +5,7 @@ import { API_ENDPOINTS } from "@/utils/endpoints";
 import { resolveImageUrl } from "@/utils/image";
 import { useAuth } from "@/context/AuthContext";
 import Modal from "@/components/ui/Modal";
+import { ANNOUNCEMENT_IMAGE_ASPECT } from "@/constants/announcements";
 
 const dismissedAtKey = (id) => `peronline_announcement_at_${id}`;
 
@@ -59,7 +60,9 @@ export default function AnnouncementModal() {
     <Modal open={open} onClose={onClose} title={item.title} mobileCenter>
       <div className="space-y-3">
         {item.image ? (
-          <img src={resolveImageUrl(item.image)} alt="" className="max-h-48 w-full rounded-xl object-cover" />
+          <div className={`overflow-hidden rounded-xl bg-slate-100 ${ANNOUNCEMENT_IMAGE_ASPECT}`}>
+            <img src={resolveImageUrl(item.image)} alt="" className="h-full w-full object-contain" />
+          </div>
         ) : null}
         {item.body ? <p className="whitespace-pre-wrap text-sm leading-relaxed text-slate-600">{item.body}</p> : null}
         {item.link_url ? (

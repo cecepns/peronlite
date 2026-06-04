@@ -9,6 +9,7 @@ import Input from "@/components/ui/Input";
 
 export default function AdminSettingsPage() {
   const [whatsapp, setWhatsapp] = useState("");
+  const [whatsapp2, setWhatsapp2] = useState("");
   const [termsText, setTermsText] = useState("");
   const [termsUpdatedAt, setTermsUpdatedAt] = useState(null);
   const [savingContact, setSavingContact] = useState(false);
@@ -17,6 +18,7 @@ export default function AdminSettingsPage() {
   useEffect(() => {
     api.get(API_ENDPOINTS.ADMIN.CONTACT).then((res) => {
       setWhatsapp(res.data?.whatsapp || "");
+      setWhatsapp2(res.data?.whatsapp_2 || "");
       setTermsText(res.data?.terms_text || "");
       setTermsUpdatedAt(res.data?.terms_updated_at || null);
     });
@@ -26,7 +28,7 @@ export default function AdminSettingsPage() {
     e.preventDefault();
     setSavingContact(true);
     try {
-      await api.put(API_ENDPOINTS.ADMIN.CONTACT, { whatsapp });
+      await api.put(API_ENDPOINTS.ADMIN.CONTACT, { whatsapp, whatsapp_2: whatsapp2 });
       toast.success("Kontak disimpan");
     } catch {
       toast.error("Gagal menyimpan kontak");
@@ -63,7 +65,9 @@ export default function AdminSettingsPage() {
           <Phone size={20} className="text-blue-600" />
           Kontak Admin
         </div>
-        <Input label="WhatsApp" value={whatsapp} onChange={(e) => setWhatsapp(e.target.value)} placeholder="628..." />
+        <Input label="WhatsApp Admin 1" value={whatsapp} onChange={(e) => setWhatsapp(e.target.value)} placeholder="628..." />
+        <Input label="WhatsApp Admin 2 (opsional)" value={whatsapp2} onChange={(e) => setWhatsapp2(e.target.value)} placeholder="628..." />
+        <p className="text-xs text-slate-500">Nomor admin ditampilkan di halaman profil & login untuk bantuan pengguna.</p>
         <Button type="submit" loading={savingContact}>
           Simpan Kontak
         </Button>
