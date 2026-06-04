@@ -5,6 +5,7 @@ import AnnouncementModal from "@/components/announcement/AnnouncementModal";
 import AdminPendingAlerts from "@/components/admin/AdminPendingAlerts";
 import AppIntro from "./AppIntro";
 import { SidebarLayoutProvider, useSidebarLayout } from "@/context/SidebarLayoutContext";
+import { APP_MAIN_SCROLL_ID } from "@/components/layout/ScrollToTop";
 
 function AppShellContent({ children }) {
   const { hasSidebar, mainMarginClass } = useSidebarLayout();
@@ -16,6 +17,7 @@ function AppShellContent({ children }) {
       <AdminPendingAlerts />
       <SidebarNav />
       <div
+        id={APP_MAIN_SCROLL_ID}
         className={`flex min-h-dvh min-w-0 flex-col transition-[margin] duration-300 ease-in-out ${
           hasSidebar ? `${mainMarginClass} lg:h-dvh lg:overflow-y-auto` : ""
         }`}

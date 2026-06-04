@@ -4,10 +4,10 @@ import toast from "react-hot-toast";
 import api from "@/utils/api";
 import { API_ENDPOINTS } from "@/utils/endpoints";
 import { formatRupiah } from "@/utils/format";
-import { resolveImageUrl } from "@/utils/image";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import { AdminPageStack, AdminScreenHeader, AdminSectionCard } from "@/components/admin/AdminPageUi";
+import QrisImageUpload from "@/components/admin/QrisImageUpload";
 
 export default function AdminPricelistEditor({
   title,
@@ -200,28 +200,20 @@ export default function AdminPricelistEditor({
 
       {paymentQrisType ? (
         <AdminSectionCard title="Gambar QRIS" subtitle="Seller dapat melihat saat klik tombol di halaman order">
-          {(qrisPreview || qrisImage) && (
-            <img
-              src={qrisPreview || resolveImageUrl(qrisImage)}
-              alt="Preview QRIS"
-              className="mx-auto mb-3 max-h-48 w-full max-w-xs rounded-lg border border-slate-200 object-contain"
-            />
-          )}
-          <input
-            type="file"
-            accept="image/jpeg,image/png,image/webp,image/gif"
-            onChange={(e) => {
-              const file = e.target.files?.[0];
-              if (!file) return;
-              if (qrisPreview) URL.revokeObjectURL(qrisPreview);
+          <QrisImageUpload
+            file={qrisFile}
+            preview={qrisPreview}
+            savedPath={qrisImage}
+            disabled={uploadingQris}
+            onChange={(file, previewUrl) => {
+              if (qrisPreview?.startsWith("blob:")) URL.revokeObjectURL(qrisPreview);
               setQrisFile(file);
-              setQrisPreview(URL.createObjectURL(file));
+              setQrisPreview(previewUrl);
             }}
-            className="block w-full text-sm text-slate-600"
           />
           <div className="mt-3 flex flex-wrap gap-2">
             <Button type="button" loading={uploadingQris} disabled={!qrisFile} onClick={uploadQris}>
-              Upload QRIS
+              Simpan QRIS
             </Button>
             {qrisImage ? (
               <Button type="button" variant="outline" onClick={removeQris}>
