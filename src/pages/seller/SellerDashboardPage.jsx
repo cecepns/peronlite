@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { Image, LayoutGrid, Megaphone, Package, Sparkles, Store } from "lucide-react";
+import { Image, LayoutGrid, Megaphone, Package, Share2, Sparkles, Store } from "lucide-react";
+import toast from "react-hot-toast";
 import api from "@/utils/api";
 import { API_ENDPOINTS } from "@/utils/endpoints";
 import { useAuth } from "@/context/AuthContext";
+import { BRAND_NAME } from "@/constants/brand";
 
 export default function SellerDashboardPage() {
   const { user } = useAuth();
@@ -12,6 +14,35 @@ export default function SellerDashboardPage() {
   useEffect(() => {
     api.get(API_ENDPOINTS.SELLER_STATS).then((res) => setStats(res.data)).catch(() => setStats(null));
   }, []);
+
+  const handleShareStore = async () => {
+    if (!user?.id) return;
+    const shareUrl = `${window.location.origin}/toko/${user.id}`;
+    const shareData = {
+      title: `Kunjungi Toko ${user.name} di ${BRAND_NAME}`,
+      text: `Dapatkan produk komoditas hasil bumi terbaik dari toko kami!`,
+      url: shareUrl
+    };
+
+    if (navigator.share) {
+      try {
+        await navigator.share(shareData);
+        toast.success("Toko berhasil dibagikan!");
+      } catch (err) {
+        if (err.name !== "AbortError") {
+          copyToClipboard(shareUrl);
+        }
+      }
+    } else {
+      copyToClipboard(shareUrl);
+    }
+  };
+
+  const copyToClipboard = (text) => {
+    navigator.clipboard.writeText(text)
+      .then(() => toast.success("Link toko disalin ke clipboard!"))
+      .catch(() => toast.error("Gagal menyalin link toko"));
+  };
 
   const cards = [
     { to: "/seller/produk", icon: LayoutGrid, label: "Kelola Produk", desc: "Tambah produk biasa & roof top" },
@@ -23,9 +54,19 @@ export default function SellerDashboardPage() {
 
   return (
     <div className="space-y-4">
-      <div>
-        <h1 className="text-xl font-bold text-slate-900">Iklan Saya</h1>
-        <p className="text-sm text-slate-500">Halo, {user?.name}.</p>
+      <div className="flex items-center justify-between gap-3">
+        <div>
+          <h1 className="text-xl font-bold text-slate-900">Iklan Saya</h1>
+          <p className="text-sm text-slate-500">Halo, {user?.name}.</p>
+        </div>
+        <button
+          type="button"
+          onClick={handleShareStore}
+          className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-semibold text-emerald-800 transition hover:bg-emerald-100"
+        >
+          <Share2 size={16} />
+          Bagikan Toko
+        </button>
       </div>
 
       {stats ? (

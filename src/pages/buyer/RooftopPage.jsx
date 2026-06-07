@@ -14,7 +14,7 @@ import BrandLogo from "@/components/brand/BrandLogo";
 
 const PAGE_SIZE = 20;
 
-function buildRooftopQuery({ keyword, category, regencyCode, storeCategory, offset }) {
+function buildRooftopQuery({ keyword, category, regencyCode, storeCategory, offset, storeSearch }) {
   const q = new URLSearchParams({
     product_type: "rooftop",
     search: keyword || "",
@@ -24,10 +24,11 @@ function buildRooftopQuery({ keyword, category, regencyCode, storeCategory, offs
     offset: String(offset)
   });
   if (storeCategory) q.set("store_category", storeCategory);
+  if (storeSearch) q.set("store_search", storeSearch);
   return q.toString();
 }
 
-function buildAdQuery({ keyword, category, regencyCode, storeCategory }) {
+function buildAdQuery({ keyword, category, regencyCode, storeCategory, storeSearch }) {
   const q = new URLSearchParams({
     product_type: "regular",
     is_highlight: "1",
@@ -38,6 +39,7 @@ function buildAdQuery({ keyword, category, regencyCode, storeCategory }) {
     offset: "0"
   });
   if (storeCategory) q.set("store_category", storeCategory);
+  if (storeSearch) q.set("store_search", storeSearch);
   return q.toString();
 }
 
@@ -52,6 +54,8 @@ export default function RooftopPage() {
   const [storeCategory, setStoreCategory] = useState(() => searchParams.get("store_category") || "");
   const [regencyCode, setRegencyCode] = useState("");
   const [regencyLabel, setRegencyLabel] = useState("");
+  const [storeSearchInput, setStoreSearchInput] = useState("");
+  const storeSearch = useDebounce(storeSearchInput, 300);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [pageIndex, setPageIndex] = useState(0);
@@ -70,8 +74,8 @@ export default function RooftopPage() {
     setHasMore(true);
     try {
       const [pRes, adRes, cRes] = await Promise.all([
-        api.get(`${API_ENDPOINTS.PRODUCTS.LIST}?${buildRooftopQuery({ keyword, category, regencyCode, storeCategory, offset: 0 })}`),
-        api.get(`${API_ENDPOINTS.PRODUCTS.LIST}?${buildAdQuery({ keyword, category, regencyCode, storeCategory })}`),
+        api.get(`${API_ENDPOINTS.PRODUCTS.LIST}?${buildRooftopQuery({ keyword, category, regencyCode, storeCategory, offset: 0, storeSearch })}`),
+        api.get(`${API_ENDPOINTS.PRODUCTS.LIST}?${buildAdQuery({ keyword, category, regencyCode, storeCategory, storeSearch })}`),
         api.get(API_ENDPOINTS.CATEGORIES.LIST)
       ]);
       if (gen !== fetchGen.current) return;
@@ -83,7 +87,7 @@ export default function RooftopPage() {
     } finally {
       if (gen === fetchGen.current) setLoading(false);
     }
-  }, [keyword, category, regencyCode, storeCategory]);
+  }, [keyword, category, regencyCode, storeCategory, storeSearch]);
 
   useEffect(() => {
     setSearchParams(
@@ -109,7 +113,7 @@ export default function RooftopPage() {
       const nextPageIndex = pageIndex + 1;
       const offset = nextPageIndex * PAGE_SIZE;
       const pRes = await api.get(
-        `${API_ENDPOINTS.PRODUCTS.LIST}?${buildRooftopQuery({ keyword, category, regencyCode, storeCategory, offset })}`
+        `${API_ENDPOINTS.PRODUCTS.LIST}?${buildRooftopQuery({ keyword, category, regencyCode, storeCategory, offset, storeSearch })}`
       );
       if (genAtStart !== fetchGen.current) return;
       const rows = Array.isArray(pRes.data) ? pRes.data : [];
@@ -126,7 +130,7 @@ export default function RooftopPage() {
     } finally {
       if (genAtStart === fetchGen.current) setLoadingMore(false);
     }
-  }, [loading, loadingMore, hasMore, pageIndex, keyword, category, regencyCode, storeCategory]);
+  }, [loading, loadingMore, hasMore, pageIndex, keyword, category, regencyCode, storeCategory, storeSearch]);
 
   loadMoreFnRef.current = loadMore;
 
@@ -143,13 +147,14 @@ export default function RooftopPage() {
     return () => observer.disconnect();
   }, []);
 
-  const hasActiveFilters = Boolean(category || regencyCode || storeCategory);
+  const hasActiveFilters = Boolean(category || regencyCode || storeCategory || storeSearch);
 
   const clearFilters = () => {
     setCategory("");
     setStoreCategory("");
     setRegencyCode("");
     setRegencyLabel("");
+    setStoreSearchInput("");
   };
 
   return (
@@ -304,6 +309,14 @@ export default function RooftopPage() {
       />
 
       <Modal open={filterOpen} onClose={() => setFilterOpen(false)} title="Filter Roof Top">
+        <label className="mb-2 block text-sm font-bold text-slate-700">Nama Toko</label>
+        <input
+          type="text"
+          value={storeSearchInput}
+          onChange={(e) => setStoreSearchInput(e.target.value)}
+          placeholder="Cari nama toko..."
+          className="mb-4 w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-100"
+        />
         <label className="mb-2 block text-sm font-bold text-slate-700">Komoditas</label>
         <select
           value={category}

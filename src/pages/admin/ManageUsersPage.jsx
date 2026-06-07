@@ -167,6 +167,7 @@ export default function ManageUsersPage() {
               <tr>
                 <th className="px-4 py-3">Nama</th>
                 <th className="px-4 py-3">Email</th>
+                <th className="px-4 py-3">No. HP</th>
                 <th className="px-4 py-3">Role</th>
                 <th className="px-4 py-3">Premium</th>
                 <th className="px-4 py-3">Aksi</th>
@@ -177,6 +178,7 @@ export default function ManageUsersPage() {
                 <tr key={u.id} className="hover:bg-slate-50">
                   <td className="px-4 py-3 font-medium">{u.name}</td>
                   <td className="px-4 py-3 text-slate-600">{u.email}</td>
+                  <td className="px-4 py-3 text-slate-600">{u.phone || "-"}</td>
                   <td className="px-4 py-3 capitalize">{u.role}</td>
                   <td className="px-4 py-3">
                     <PremiumBadge user={u} />

@@ -14,7 +14,7 @@ import Modal from "@/components/ui/Modal";
 
 const PAGE_SIZE = 20;
 
-function buildQuery({ offset, search, category, regencyCode, storeCategory }) {
+function buildQuery({ offset, search, category, regencyCode, storeCategory, storeSearch }) {
   const params = new URLSearchParams({
     product_type: "regular",
     is_highlight: "1",
@@ -25,6 +25,7 @@ function buildQuery({ offset, search, category, regencyCode, storeCategory }) {
     offset: String(offset)
   });
   if (storeCategory) params.set("store_category", storeCategory);
+  if (storeSearch) params.set("store_search", storeSearch);
   return params.toString();
 }
 
@@ -37,6 +38,8 @@ export default function ProductAdsPage() {
   const [storeCategory, setStoreCategory] = useState("");
   const [regencyCode, setRegencyCode] = useState("");
   const [regencyLabel, setRegencyLabel] = useState("");
+  const [storeSearchInput, setStoreSearchInput] = useState("");
+  const storeSearch = useDebounce(storeSearchInput, 300);
   const [filterOpen, setFilterOpen] = useState(false);
   const [locationOpen, setLocationOpen] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -59,7 +62,7 @@ export default function ProductAdsPage() {
     setHasMore(true);
     try {
       const res = await api.get(
-        `${API_ENDPOINTS.PRODUCTS.LIST}?${buildQuery({ offset: 0, search: keyword, category, regencyCode, storeCategory })}`
+        `${API_ENDPOINTS.PRODUCTS.LIST}?${buildQuery({ offset: 0, search: keyword, category, regencyCode, storeCategory, storeSearch })}`
       );
       if (gen !== fetchGen.current) return;
       const rows = Array.isArray(res.data) ? res.data : [];
@@ -72,7 +75,7 @@ export default function ProductAdsPage() {
     } finally {
       if (gen === fetchGen.current) setLoading(false);
     }
-  }, [keyword, category, regencyCode, storeCategory]);
+  }, [keyword, category, regencyCode, storeCategory, storeSearch]);
 
   useEffect(() => {
     loadInitial();
@@ -86,7 +89,7 @@ export default function ProductAdsPage() {
       const nextPageIndex = pageIndex + 1;
       const offset = nextPageIndex * PAGE_SIZE;
       const res = await api.get(
-        `${API_ENDPOINTS.PRODUCTS.LIST}?${buildQuery({ offset, search: keyword, category, regencyCode, storeCategory })}`
+        `${API_ENDPOINTS.PRODUCTS.LIST}?${buildQuery({ offset, search: keyword, category, regencyCode, storeCategory, storeSearch })}`
       );
       if (genAtStart !== fetchGen.current) return;
       const rows = Array.isArray(res.data) ? res.data : [];
@@ -103,7 +106,7 @@ export default function ProductAdsPage() {
     } finally {
       if (genAtStart === fetchGen.current) setLoadingMore(false);
     }
-  }, [loading, loadingMore, hasMore, pageIndex, keyword, category, regencyCode, storeCategory]);
+  }, [loading, loadingMore, hasMore, pageIndex, keyword, category, regencyCode, storeCategory, storeSearch]);
 
   loadMoreFnRef.current = loadMore;
 
@@ -120,7 +123,7 @@ export default function ProductAdsPage() {
     return () => observer.disconnect();
   }, []);
 
-  const hasActiveFilters = Boolean(category || regencyCode || storeCategory);
+  const hasActiveFilters = Boolean(category || regencyCode || storeCategory || storeSearch);
 
   return (
     <div className="min-h-screen">
@@ -238,6 +241,14 @@ export default function ProductAdsPage() {
       />
 
       <Modal open={filterOpen} onClose={() => setFilterOpen(false)} title="Filter Iklan Produk">
+        <label className="mb-2 block text-sm font-bold text-slate-700">Nama Toko</label>
+        <input
+          type="text"
+          value={storeSearchInput}
+          onChange={(e) => setStoreSearchInput(e.target.value)}
+          placeholder="Cari nama toko..."
+          className="mb-4 w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-100"
+        />
         <p className="mb-2 text-sm font-bold text-slate-700">Komoditas</p>
         <CategoryChips categories={categories} value={category} onChange={setCategory} loading={false} />
         <p className="mb-2 mt-4 text-sm font-bold text-slate-700">Kabupaten / Kota</p>
@@ -259,6 +270,7 @@ export default function ProductAdsPage() {
             setStoreCategory("");
             setRegencyCode("");
             setRegencyLabel("");
+            setStoreSearchInput("");
           }}
           className="w-full rounded-lg border border-slate-200 bg-white py-2.5 text-sm font-bold text-slate-700"
         >

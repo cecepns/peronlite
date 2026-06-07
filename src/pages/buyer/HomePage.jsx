@@ -9,6 +9,7 @@ import {
   UserCircle,
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
+import { useDebounce } from "@/hooks/useDebounce";
 import api from "@/utils/api";
 import { API_ENDPOINTS } from "@/utils/endpoints";
 import BannerCarousel from "@/components/home/BannerCarousel";
@@ -33,6 +34,7 @@ function buildQuery({
   offset,
   productType,
   isHighlight,
+  storeSearch,
 }) {
   const params = new URLSearchParams({
     search: keyword || "",
@@ -45,6 +47,7 @@ function buildQuery({
   if (productType) params.set("product_type", productType);
   if (isHighlight !== undefined)
     params.set("is_highlight", isHighlight ? "1" : "0");
+  if (storeSearch) params.set("store_search", storeSearch);
   return params.toString();
 }
 
@@ -59,6 +62,8 @@ export default function HomePage() {
   const [storeCategory, setStoreCategory] = useState("");
   const [regencyCode, setRegencyCode] = useState("");
   const [regencyLabel, setRegencyLabel] = useState("");
+  const [storeSearchInput, setStoreSearchInput] = useState("");
+  const storeSearch = useDebounce(storeSearchInput, 300);
   const [filterOpen, setFilterOpen] = useState(false);
   const [locationOpen, setLocationOpen] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -78,7 +83,7 @@ export default function HomePage() {
     setPageIndex(0);
     setHasMore(true);
     try {
-      const base = { keyword, category, regencyCode, storeCategory, offset: 0 };
+      const base = { keyword, category, regencyCode, storeCategory, storeSearch, offset: 0 };
       const bannerParams = storeCategory
         ? `?store_category=${encodeURIComponent(storeCategory)}`
         : "";
@@ -110,7 +115,7 @@ export default function HomePage() {
     } finally {
       if (gen === fetchGen.current) setLoading(false);
     }
-  }, [keyword, category, regencyCode, storeCategory]);
+  }, [keyword, category, regencyCode, storeCategory, storeSearch]);
 
   useEffect(() => {
     loadInitial();
@@ -124,7 +129,7 @@ export default function HomePage() {
       const nextPageIndex = pageIndex + 1;
       const offset = nextPageIndex * PAGE_SIZE;
       const pRes = await api.get(
-        `${API_ENDPOINTS.PRODUCTS.LIST}?${buildQuery({ keyword, category, regencyCode, storeCategory, offset, productType: "regular", isHighlight: false })}`,
+        `${API_ENDPOINTS.PRODUCTS.LIST}?${buildQuery({ keyword, category, regencyCode, storeCategory, storeSearch, offset, productType: "regular", isHighlight: false })}`,
       );
       if (genAtStart !== fetchGen.current) return;
       const rows = Array.isArray(pRes.data) ? pRes.data : [];
@@ -151,6 +156,7 @@ export default function HomePage() {
     category,
     regencyCode,
     storeCategory,
+    storeSearch,
   ]);
 
   loadMoreFnRef.current = loadMore;
@@ -368,6 +374,16 @@ export default function HomePage() {
         onClose={() => setFilterOpen(false)}
         title="Filter Produk"
       >
+        <label className="mb-2 block text-sm font-bold text-slate-700">
+          Nama Toko
+        </label>
+        <input
+          type="text"
+          value={storeSearchInput}
+          onChange={(e) => setStoreSearchInput(e.target.value)}
+          placeholder="Cari nama toko..."
+          className="mb-4 w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
+        />
         <label className="mb-3 block text-sm font-bold text-slate-700">
           Komoditas
         </label>
@@ -420,6 +436,7 @@ export default function HomePage() {
             setStoreCategory("");
             setRegencyCode("");
             setRegencyLabel("");
+            setStoreSearchInput("");
           }}
           className="w-full rounded-lg border border-slate-200 bg-white py-2.5 text-sm font-bold text-slate-700"
         >

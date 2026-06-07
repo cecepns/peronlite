@@ -1,11 +1,13 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Building2, ChevronLeft, MapPin, Phone } from "lucide-react";
+import { Building2, ChevronLeft, MapPin, Phone, Share2 } from "lucide-react";
+import toast from "react-hot-toast";
 import api from "@/utils/api";
 import { API_ENDPOINTS } from "@/utils/endpoints";
 import ProductCard from "@/components/product/ProductCard";
 import { getInitial, stripHtml } from "@/utils/format";
 import { resolveImageUrl } from "@/utils/image";
+import { BRAND_NAME } from "@/constants/brand";
 
 const PAGE_SIZE = 20;
 
@@ -19,6 +21,35 @@ export default function StoreFrontPage() {
   const [pageIndex, setPageIndex] = useState(0);
   const [hasMore, setHasMore] = useState(true);
   const loadMoreRef = useRef(null);
+
+  const handleShareStore = async () => {
+    if (!store) return;
+    const shareUrl = window.location.href;
+    const shareData = {
+      title: `Kunjungi Toko ${store.name} di ${BRAND_NAME}`,
+      text: `Dapatkan produk komoditas hasil bumi terbaik dari ${store.name}!`,
+      url: shareUrl
+    };
+
+    if (navigator.share) {
+      try {
+        await navigator.share(shareData);
+        toast.success("Toko berhasil dibagikan!");
+      } catch (err) {
+        if (err.name !== "AbortError") {
+          copyToClipboard(shareUrl);
+        }
+      }
+    } else {
+      copyToClipboard(shareUrl);
+    }
+  };
+
+  const copyToClipboard = (text) => {
+    navigator.clipboard.writeText(text)
+      .then(() => toast.success("Link toko disalin!"))
+      .catch(() => toast.error("Gagal menyalin link"));
+  };
 
   const loadProducts = useCallback(
     async (offset, append) => {
@@ -87,7 +118,13 @@ export default function StoreFrontPage() {
           <ChevronLeft size={26} />
         </button>
         <h1 className="flex-1 truncate text-center text-base font-bold">{store?.name || "Etalase toko"}</h1>
-        <div className="w-8" />
+        {store ? (
+          <button type="button" onClick={handleShareStore} className="rounded-lg p-1.5 text-slate-600 hover:bg-slate-100 hover:text-slate-900" title="Bagikan Toko">
+            <Share2 size={22} />
+          </button>
+        ) : (
+          <div className="w-9" />
+        )}
       </div>
 
       {loading ? (
