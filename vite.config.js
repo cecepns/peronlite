@@ -15,8 +15,8 @@ export default defineConfig({
         name: "Peronlite",
         short_name: "Peronlite",
         description: "Marketplace komoditas hasil pertanian Indonesia",
-        theme_color: "#1d4ed8",
-        background_color: "#f8fafc",
+        theme_color: "#005c21",
+        background_color: "#005c21",
         display: "standalone",
         icons: [
           { src: "/logo.png", sizes: "192x192", type: "image/png" },
