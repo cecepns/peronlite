@@ -1,11 +1,21 @@
 import { useEffect, useState } from "react";
 import logoImg from "@/assets/logo.png";
 
+const checkIsStandalone = () => {
+  if (typeof window === "undefined") return false;
+  return (
+    window.matchMedia("(display-mode: standalone)").matches ||
+    window.navigator.standalone === true
+  );
+};
+
 export default function SplashScreen() {
-  const [visible, setVisible] = useState(true);
+  const [visible, setVisible] = useState(checkIsStandalone);
   const [fadeOut, setFadeOut] = useState(false);
 
   useEffect(() => {
+    if (!visible) return;
+
     const timer = setTimeout(() => {
       setFadeOut(true);
       const removeTimer = setTimeout(() => {
@@ -15,7 +25,7 @@ export default function SplashScreen() {
     }, 2000); // display splash screen for 2 seconds
 
     return () => clearTimeout(timer);
-  }, []);
+  }, [visible]);
 
   if (!visible) return null;
 
