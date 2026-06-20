@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   ChevronDown,
@@ -18,6 +18,7 @@ import CategoryChips from "@/components/home/CategoryChips";
 import StoreCategoryChips from "@/components/home/StoreCategoryChips";
 import ProductCard from "@/components/product/ProductCard";
 import AdProductCarousel from "@/components/home/AdProductCarousel";
+import HomeProductSection from "@/components/home/HomeProductSection";
 import ProductCardSkeleton from "@/components/product/ProductCardSkeleton";
 import RegencySearchModal from "@/components/regency/RegencySearchModal";
 import Modal from "@/components/ui/Modal";
@@ -35,6 +36,7 @@ function buildQuery({
   productType,
   isHighlight,
   storeSearch,
+  homepageSection,
 }) {
   const params = new URLSearchParams({
     search: keyword || "",
@@ -48,12 +50,15 @@ function buildQuery({
   if (isHighlight !== undefined)
     params.set("is_highlight", isHighlight ? "1" : "0");
   if (storeSearch) params.set("store_search", storeSearch);
+  if (homepageSection) params.set("homepage_section", homepageSection);
   return params.toString();
 }
 
 export default function HomePage() {
   const { user } = useAuth();
-  const [products, setProducts] = useState([]);
+  const [premiumProducts, setPremiumProducts] = useState([]);
+  const [latestProducts, setLatestProducts] = useState([]);
+  const [searchProducts, setSearchProducts] = useState([]);
   const [adProducts, setAdProducts] = useState([]);
   const [banners, setBanners] = useState([]);
   const [categories, setCategories] = useState([]);
@@ -75,6 +80,17 @@ export default function HomePage() {
   const loadMoreRef = useRef(null);
   const loadMoreFnRef = useRef(() => {});
 
+  const isSearchMode = useMemo(
+    () =>
+      Boolean(
+        keyword.trim() ||
+          category ||
+          regencyCode ||
+          storeSearch.trim(),
+      ),
+    [keyword, category, regencyCode, storeSearch],
+  );
+
   const loadInitial = useCallback(async () => {
     fetchGen.current += 1;
     const gen = fetchGen.current;
@@ -87,42 +103,71 @@ export default function HomePage() {
       const bannerParams = storeCategory
         ? `?store_category=${encodeURIComponent(storeCategory)}`
         : "";
-      const [pRes, adRes, bRes, cRes] = await Promise.all([
-        api.get(
-          `${API_ENDPOINTS.PRODUCTS.LIST}?${buildQuery({ ...base, productType: "regular", isHighlight: false })}`,
-        ),
-        api.get(
-          `${API_ENDPOINTS.PRODUCTS.LIST}?${buildQuery({ ...base, productType: "regular", isHighlight: true })}`,
-        ),
-        api.get(`${API_ENDPOINTS.BANNERS}${bannerParams}`),
-        api.get(API_ENDPOINTS.CATEGORIES.LIST),
-      ]);
-      if (gen !== fetchGen.current) return;
-      const rows = Array.isArray(pRes.data) ? pRes.data : [];
-      setProducts(rows);
-      setAdProducts(Array.isArray(adRes.data) ? adRes.data : []);
-      setHasMore(rows.length >= PAGE_SIZE);
-      setBanners(bRes.data || []);
-      setCategories(cRes.data || []);
+
+      if (isSearchMode) {
+        const [pRes, adRes, bRes, cRes] = await Promise.all([
+          api.get(
+            `${API_ENDPOINTS.PRODUCTS.LIST}?${buildQuery({ ...base, productType: "regular", isHighlight: false })}`,
+          ),
+          api.get(
+            `${API_ENDPOINTS.PRODUCTS.LIST}?${buildQuery({ ...base, productType: "regular", isHighlight: true })}`,
+          ),
+          api.get(`${API_ENDPOINTS.BANNERS}${bannerParams}`),
+          api.get(API_ENDPOINTS.CATEGORIES.LIST),
+        ]);
+        if (gen !== fetchGen.current) return;
+        const rows = Array.isArray(pRes.data) ? pRes.data : [];
+        setSearchProducts(rows);
+        setPremiumProducts([]);
+        setLatestProducts([]);
+        setHasMore(rows.length >= PAGE_SIZE);
+        setAdProducts(Array.isArray(adRes.data) ? adRes.data : []);
+        setBanners(bRes.data || []);
+        setCategories(cRes.data || []);
+      } else {
+        const [premiumRes, latestRes, adRes, bRes, cRes] = await Promise.all([
+          api.get(
+            `${API_ENDPOINTS.PRODUCTS.LIST}?${buildQuery({ ...base, productType: "regular", isHighlight: false, homepageSection: "premium" })}`,
+          ),
+          api.get(
+            `${API_ENDPOINTS.PRODUCTS.LIST}?${buildQuery({ ...base, productType: "regular", isHighlight: false, homepageSection: "latest" })}`,
+          ),
+          api.get(
+            `${API_ENDPOINTS.PRODUCTS.LIST}?${buildQuery({ ...base, productType: "regular", isHighlight: true })}`,
+          ),
+          api.get(`${API_ENDPOINTS.BANNERS}${bannerParams}`),
+          api.get(API_ENDPOINTS.CATEGORIES.LIST),
+        ]);
+        if (gen !== fetchGen.current) return;
+        setPremiumProducts(Array.isArray(premiumRes.data) ? premiumRes.data : []);
+        setLatestProducts(Array.isArray(latestRes.data) ? latestRes.data : []);
+        setSearchProducts([]);
+        setHasMore(false);
+        setAdProducts(Array.isArray(adRes.data) ? adRes.data : []);
+        setBanners(bRes.data || []);
+        setCategories(cRes.data || []);
+      }
     } catch (err) {
       if (gen !== fetchGen.current) return;
       setFetchError(
         err?.response?.data?.message || err?.message || "Gagal memuat data",
       );
-      setProducts([]);
+      setPremiumProducts([]);
+      setLatestProducts([]);
+      setSearchProducts([]);
       setAdProducts([]);
       setHasMore(false);
     } finally {
       if (gen === fetchGen.current) setLoading(false);
     }
-  }, [keyword, category, regencyCode, storeCategory, storeSearch]);
+  }, [keyword, category, regencyCode, storeCategory, storeSearch, isSearchMode]);
 
   useEffect(() => {
     loadInitial();
   }, [loadInitial]);
 
   const loadMore = useCallback(async () => {
-    if (loading || loadingMore || !hasMore || fetchError) return;
+    if (!isSearchMode || loading || loadingMore || !hasMore || fetchError) return;
     const genAtStart = fetchGen.current;
     setLoadingMore(true);
     try {
@@ -137,7 +182,7 @@ export default function HomePage() {
         setHasMore(false);
         return;
       }
-      setProducts((prev) => [...prev, ...rows]);
+      setSearchProducts((prev) => [...prev, ...rows]);
       setPageIndex(nextPageIndex);
       setHasMore(rows.length >= PAGE_SIZE);
     } catch {
@@ -147,6 +192,7 @@ export default function HomePage() {
       if (genAtStart === fetchGen.current) setLoadingMore(false);
     }
   }, [
+    isSearchMode,
     loading,
     loadingMore,
     hasMore,
@@ -162,6 +208,7 @@ export default function HomePage() {
   loadMoreFnRef.current = loadMore;
 
   useEffect(() => {
+    if (!isSearchMode) return undefined;
     const node = loadMoreRef.current;
     if (!node) return undefined;
     const observer = new IntersectionObserver(
@@ -172,7 +219,7 @@ export default function HomePage() {
     );
     observer.observe(node);
     return () => observer.disconnect();
-  }, []);
+  }, [isSearchMode]);
 
   return (
     <div className="-mx-3 min-h-full min-w-0 bg-gradient-to-b from-emerald-50/80 via-white to-white px-3 pb-6 sm:-mx-4 sm:px-4">
@@ -299,32 +346,59 @@ export default function HomePage() {
           </div>
         ) : null}
 
-        <section
-          className="min-w-0 pt-1"
-          aria-labelledby="home-komoditas-heading"
-          data-intro-home-komoditas
-        >
-          <h2
-            id="home-komoditas-heading"
-            className="text-lg font-extrabold tracking-tight text-slate-900 sm:text-xl"
+        {isSearchMode ? (
+          <section
+            className="min-w-0 pt-1"
+            aria-labelledby="home-search-heading"
+            data-intro-home-komoditas
           >
-            Komoditas Produk
-          </h2>
-        </section>
+            <h2
+              id="home-search-heading"
+              className="text-lg font-extrabold tracking-tight text-slate-900 sm:text-xl"
+            >
+              Hasil Pencarian
+            </h2>
+            <p className="mt-1 text-xs text-slate-500 sm:text-sm">
+              Produk premium ditampilkan lebih dulu. Semua produk aktif tetap bisa ditemukan lewat pencarian dan filter.
+            </p>
+          </section>
+        ) : null}
 
-        <div className="grid w-full min-w-0 grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
-          {loading
-            ? Array.from({ length: 8 }).map((_, i) => (
-                <div key={i} className="min-w-0">
-                  <ProductCardSkeleton />
-                </div>
-              ))
-            : products.map((p) => (
-                <div key={p.id} className="min-w-0">
-                  <ProductCard product={p} />
-                </div>
-              ))}
-        </div>
+        {!isSearchMode ? (
+          <div className="space-y-6" data-intro-home-komoditas>
+            <HomeProductSection
+              id="home-komoditas-premium-heading"
+              title="Komoditas Premium"
+              subtitle="Pilihan dari seller berbayar — prioritas tampil lebih lama di beranda."
+              products={premiumProducts}
+              loading={loading}
+              emptyText="Belum ada komoditas premium saat ini."
+              variant="premium"
+            />
+            <HomeProductSection
+              id="home-komoditas-terbaru-heading"
+              title="Komoditas Terbaru"
+              subtitle="Produk akun basic tampil sementara di beranda, lalu tetap aktif di pencarian."
+              products={latestProducts}
+              loading={loading}
+              emptyText="Belum ada komoditas terbaru untuk ditampilkan."
+            />
+          </div>
+        ) : (
+          <div className="grid w-full min-w-0 grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
+            {loading
+              ? Array.from({ length: 8 }).map((_, i) => (
+                  <div key={i} className="min-w-0">
+                    <ProductCardSkeleton />
+                  </div>
+                ))
+              : searchProducts.map((p) => (
+                  <div key={p.id} className="min-w-0">
+                    <ProductCard product={p} />
+                  </div>
+                ))}
+          </div>
+        )}
 
         {!loading && fetchError ? (
           <div className="rounded-xl border border-red-100 bg-red-50 px-4 py-6 text-center">
@@ -339,21 +413,23 @@ export default function HomePage() {
           </div>
         ) : null}
 
-        {!loading && !fetchError && !products.length ? (
+        {!loading && !fetchError && isSearchMode && !searchProducts.length ? (
           <p className="py-4 text-center text-sm text-slate-500">
             Belum ada komoditas ditemukan.
           </p>
         ) : null}
 
-        <div
-          ref={loadMoreRef}
-          className={`flex justify-center py-4 ${!hasMore || fetchError ? "pointer-events-none invisible h-0 py-0" : ""}`}
-          aria-hidden={!hasMore || !!fetchError}
-        >
-          {loadingMore && hasMore && !fetchError ? (
-            <span className="h-6 w-6 animate-spin rounded-full border-2 border-blue-600 border-t-transparent" />
-          ) : null}
-        </div>
+        {isSearchMode ? (
+          <div
+            ref={loadMoreRef}
+            className={`flex justify-center py-4 ${!hasMore || fetchError ? "pointer-events-none invisible h-0 py-0" : ""}`}
+            aria-hidden={!hasMore || !!fetchError}
+          >
+            {loadingMore && hasMore && !fetchError ? (
+              <span className="h-6 w-6 animate-spin rounded-full border-2 border-blue-600 border-t-transparent" />
+            ) : null}
+          </div>
+        ) : null}
       </div>
 
       <RegencySearchModal

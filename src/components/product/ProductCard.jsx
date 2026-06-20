@@ -1,16 +1,24 @@
 import { Link } from "react-router-dom";
-import { MapPin } from "lucide-react";
+import { MapPin, Sparkles } from "lucide-react";
 import { formatRupiah } from "@/utils/format";
 import { resolveImageUrl } from "@/utils/image";
 
-export default function ProductCard({ product, to }) {
+export default function ProductCard({ product, to, showPremiumBadge = false }) {
   const href = to || `/produk/${product.slug || product.id}`;
+  const isPremium =
+    showPremiumBadge || Number(product.seller_is_premium_paid) === 1 || Number(product.is_premium) === 1;
 
   return (
     <Link
       to={href}
-      className="block h-full w-full min-w-0 max-w-full rounded-lg border border-slate-200 bg-white p-2 shadow-sm transition hover:border-blue-200 hover:shadow-md"
+      className="relative block h-full w-full min-w-0 max-w-full rounded-lg border border-slate-200 bg-white p-2 shadow-sm transition hover:border-blue-200 hover:shadow-md"
     >
+      {isPremium ? (
+        <span className="absolute right-3 top-3 z-10 inline-flex items-center gap-0.5 rounded-full bg-violet-600 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white shadow">
+          <Sparkles size={10} />
+          Premium
+        </span>
+      ) : null}
       <img
         src={resolveImageUrl(product.thumbnail || "")}
         alt={product.name}
